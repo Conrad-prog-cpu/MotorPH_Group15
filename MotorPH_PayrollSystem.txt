@@ -1,0 +1,165 @@
+/**
+ * MotorPH Payroll System
+ * Core Classes Documentation
+ * -------------------------------------------------------------------------
+ * This document provides a high-level overview of the main classes in the 
+ * MotorPH Payroll System and their primary functionalities.
+ */
+
+/**
+ * Employee class for storing employee information
+ */
+public class Employee {
+    private String employeeId;
+    private String lastName;
+    private String firstName;
+    private String birthday;
+    private double hourlyRate;
+    
+    public Employee(String employeeId, String lastName, String firstName, String birthday) {
+        // Constructor initializes employee with basic information
+    }
+    
+    // Getter methods
+    public String getEmployeeNumber();
+    public String getFullName();
+    public String getFirstName();
+    public String getLastName();
+    public String getBirthday();
+    public double getHourlyRate();
+    
+    // Setter method
+    public void setHourlyRate(double hourlyRate);
+}
+
+/**
+ * TimeKeeping class for managing daily attendance records
+ */
+public class TimeKeeping {
+    private String employeeId;
+    private String date;
+    private String timeIn;
+    private String timeOut;
+    
+    // Regular work schedule constants
+    private static final LocalTime REGULAR_START_TIME = LocalTime.of(8, 0); // 8:00 AM
+    private static final LocalTime REGULAR_END_TIME = LocalTime.of(17, 0); // 5:00 PM
+    private static final LocalTime GRACE_PERIOD_END = LocalTime.of(8, 10); // 8:10 AM grace period
+    
+    public TimeKeeping(String employeeId, String date, String timeIn, String timeOut) {
+        // Constructor initializes a daily attendance record
+    }
+    
+    // Attendance calculation methods
+    public double calculateDailyHours();
+    public double calculateRegularHours();
+    public double calculateOvertimeHours();
+    public boolean isLateForDeduction();
+    public int calculateLateMinutes();
+    public int calculateUndertimeMinutes();
+    
+    // Getter methods
+    public String getEmployeeId();
+    public String getDate();
+    public String getTimeIn();
+    public String getTimeOut();
+}
+
+/**
+ * WeeklyAttendance class for aggregating and analyzing weekly time records
+ */
+public class WeeklyAttendance {
+    private String employeeId;
+    private String weekStartDate;
+    private List<TimeKeeping> dailyAttendance;
+    
+    // Standard weekly regular hours
+    private static final double WEEKLY_REGULAR_HOURS = 40.0;
+    
+    public WeeklyAttendance(String employeeId, String weekStartDate) {
+        // Constructor initializes weekly attendance tracker
+    }
+    
+    // Attendance management
+    public void addDailyAttendance(TimeKeeping attendance);
+    public int getDailyAttendanceCount();
+    
+    // Weekly hour calculations
+    public double calculateWeeklyHours();
+    public double calculateRegularHours();
+    public double calculateOvertimeHours();
+    
+    // Late/undertime calculations
+    public int getTotalLateMinutes();
+    public boolean hasDeductibleLateness();
+    public int getDeductibleLateMinutes();
+    public int getTotalUndertimeMinutes();
+    
+    // Display and reporting
+    public void displayWeeklyDetails();
+    
+    // Getter methods
+    public String getEmployeeId();
+    public String getWeekStartDate();
+    public List<TimeKeeping> getDailyAttendance();
+}
+
+/**
+ * PayrollCalculator class for calculating salary and statutory deductions
+ */
+public class PayrollCalculator {
+    // Constants for deduction rates and thresholds
+    private static final double PHILHEALTH_RATE = 0.03;        // 3% for PhilHealth
+    private static final double PAGIBIG_RATE_LOWER = 0.01;     // 1% for lower bracket
+    private static final double PAGIBIG_RATE_UPPER = 0.02;     // 2% for upper bracket
+    private static final double LATE_PENALTY_RATE = 0.10;      // 10% penalty for lateness
+    
+    // Calculation methods
+    public double calculateSSS(double grossSalary);
+    public double calculatePhilHealth(double grossSalary);
+    public double calculatePagIbig(double grossSalary);
+    public double calculateTax(double taxableIncome);
+    public double calculateLatePenalty(double regularPay, int lateMinutes);
+    
+    /**
+     * Calculates full salary details including all deductions
+     * Returns array with: [grossSalary, sssContribution, philhealthContribution, 
+     * pagibigContribution, taxableIncome, tax, netSalary, regularPay, overtimePay]
+     */
+    public double[] calculateFullSalaryDetails(double regularHours, double overtimeHours, 
+                                            double hourlyRate, boolean hasLateness, 
+                                            boolean prorateDeductions);
+}
+
+/**
+ * FileHandler utility class for reading employee and attendance data
+ */
+public class FileHandler {
+    /**
+     * Reads attendance records for a specific employee from a text file
+     */
+    public static TimeKeeping[] readAttendanceRecords(String filePath, String employeeId) throws IOException;
+}
+
+/**
+ * Main class that runs the payroll application
+ */
+public class Main {
+    // Entry point and user interface management
+    public static void main(String[] args);
+    
+    // UI screens and navigation
+    private static boolean showLoginScreen(Scanner scanner);
+    private static Employee showEmployeeListScreen(Scanner scanner, List<Employee> employeeList);
+    private static String showWeekListScreen(Scanner scanner, Employee employee, List<String> availableWeeks);
+    private static int showMainMenu(Scanner scanner, Employee employee, String weekStart);
+    
+    // Core functionality
+    private static void displayEmployeeInfo(Employee employee);
+    private static void displayWeeklyHours(Employee employee, String weekStartDate);
+    private static void calculateWeeklySalary(Employee employee, String weekStartDate);
+    
+    // Data handling
+    private static List<Employee> loadEmployeeList();
+    private static WeeklyAttendance getWeeklyAttendance(String employeeId, String weekStartDate);
+}
