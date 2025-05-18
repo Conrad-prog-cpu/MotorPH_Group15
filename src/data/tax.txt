@@ -1,0 +1,1 @@
+range_start,range_end,tax0|20,832|0.0020,833|33,333|20% in excess of 20,833"33,333|66,667|2,500 plus 25% in excess of 33,33366,667|166,667|10,833 plus 30% in excess of 66,667166,667|below 666,667|40,833.33 plus 32% in excess over 166,667666,667|200,833.33|35% in excess of 666,667
