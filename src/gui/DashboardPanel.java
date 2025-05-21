@@ -3,6 +3,7 @@ package gui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
@@ -55,6 +56,14 @@ txtEmployeeId.setCaretColor(Color.WHITE); // makes cursor visible on dark bg
 
         // Search Button Action
         btnSearch.addActionListener(this::handleSearch);
+        
+        // Enter key in text field trigger Search button
+txtEmployeeId.addActionListener(new java.awt.event.ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        btnSearch.doClick();
+    }
+});
     }
 
    private void handleSearch(ActionEvent e) {
