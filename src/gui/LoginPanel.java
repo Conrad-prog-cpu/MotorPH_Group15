@@ -59,6 +59,7 @@ public class LoginPanel extends JFrame {
         loginButton.setFocusPainted(false);
         loginButton.addActionListener(e -> checkLogin());
         add(loginButton);
+        getRootPane().setDefaultButton(loginButton);
 
         setVisible(true);
     }
