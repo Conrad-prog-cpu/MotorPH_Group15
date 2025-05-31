@@ -5,9 +5,13 @@ Username: admin
 Password: 1234
 
 Design and Frontend of the program:
+
 --Rhynne Gracelle Pontanilla
+
 --Carl Justine Pontanilla
 
 Backend of the program:
+
 --Ghaby Gonzales- coding attendance and employee info
+
 --Conrado Santos- coding all payroll, weekly and deduction of salary

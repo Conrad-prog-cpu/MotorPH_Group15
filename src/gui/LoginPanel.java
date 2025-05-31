@@ -23,6 +23,7 @@ public class LoginPanel extends JFrame {
         setTitle("MotorPH Payroll System - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 400);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // ✅ This makes the window start maximized
         setLocationRelativeTo(null);
 
         JPanel backgroundPanel = new JPanel() {
