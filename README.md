@@ -4,14 +4,10 @@ It includes government deduction calculations such as SSS, PhilHealth, Pag-IBIG,
 Username: admin
 Password: 1234
 
-Design and Frontend of the program
+Design and Frontend of the program:
+--Rhynne Gracelle Pontanilla
+--Carl Justine Pontanilla
 
-Rhynne Gracelle Pontanilla
-
-Carl Justine Pontanilla
-
-Backend of the program
-
-Ghaby Gonzales- coding attendance and employee info
-
-Conrado Santos- coding all payroll, weekly and deduction of salary
+Backend of the program:
+--Ghaby Gonzales- coding attendance and employee info
+--Conrado Santos- coding all payroll, weekly and deduction of salary
