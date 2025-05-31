@@ -206,6 +206,9 @@ public class LoginPanel extends JFrame {
                 lockoutTimer.start();
             } else {
                 feedbackLabel.setText("<html><div align='center'>Incorrect username or password.<br>Attempt " + attempts + " of 3.</div></html>");
+                 usernameField.requestFocus();
+                 passwordField.setText("");
+                 usernameField.setText(""); // This highlights all text in the field
             }
         }
     }

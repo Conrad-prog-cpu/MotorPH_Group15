@@ -1,52 +1,77 @@
+// Declares package location for organization
 package gui;
 
+// Swing components for building GUI
 import javax.swing.*;
+// Allows setting borders (like padding)
 import javax.swing.border.EmptyBorder;
+// For layout and color controls
 import java.awt.*;
-import java.awt.event.ActionEvent;
+// For handling button clicks and events
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+// For loading image resources
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+// For storing employee data in key-value format
 
+// Main class for the dashboard screen, inherits JFrame for window functionality
 public class DashboardPanel extends JFrame {
 
+    // Layout manager that allows switching between different panels
     private final CardLayout cardLayout = new CardLayout();
+
+    // Panel that will hold different views like attendance, employee, payroll
     JPanel contentPanel = new JPanel(); 
+
+    // Reusable panel to show employee information
     private final EmployeePanel employeePanel = new EmployeePanel();
 
+    // Constructor for the dashboard, accepts a user parameter
     public DashboardPanel(String user) {
+        // Set the title of the window
         setTitle("MotorPH Dashboard");
+
+        // Close the program when window is closed
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Set initial size of the window
         setSize(1000, 650);
+
+        // Center the window on screen
         setLocationRelativeTo(null);
+
+        // Use BorderLayout for top-left-right-bottom-center sections
         setLayout(new BorderLayout());
+
+        // Minimum size allowed when resized
         setMinimumSize(new Dimension(800, 500));
 
+        // Define color and font styles
         Color sidebarColor = Color.WHITE;
         Color gradientStart = new Color(255, 204, 229);
         Color gradientEnd = new Color(255, 229, 180);
         Font boldFont = new Font("Segoe UI", Font.BOLD, 16);
         Font regularFont = new Font("Segoe UI", Font.PLAIN, 14);
 
-        // Sidebar
+        // Sidebar container on the left
         JPanel sidebar = new JPanel(new BorderLayout());
         sidebar.setBackground(sidebarColor);
         sidebar.setPreferredSize(new Dimension(250, getHeight()));
-        sidebar.setBorder(new EmptyBorder(20, 20, 20, 20));
+        sidebar.setBorder(new EmptyBorder(20, 20, 20, 20)); // Add padding
 
-        // Profile section
+        // Profile section (top of sidebar)
         JPanel profilePanel = new JPanel(new BorderLayout(10, 0));
         profilePanel.setBackground(sidebarColor);
 
+        // Profile picture icon
         JLabel profileIcon = new JLabel(loadImageIcon("/assets/userprofile.png", 40, 40));
         profilePanel.add(profileIcon, BorderLayout.WEST);
 
+        // Container for user name and role
         JPanel namePanel = new JPanel();
         namePanel.setLayout(new BoxLayout(namePanel, BoxLayout.Y_AXIS));
         namePanel.setBackground(sidebarColor);
-        JLabel userName = new JLabel("Admin");
+        JLabel userName = new JLabel("Admin"); // Placeholder text
         JLabel userRole = new JLabel("HR Manager");
         userName.setFont(boldFont);
         userRole.setFont(regularFont);
@@ -55,100 +80,50 @@ public class DashboardPanel extends JFrame {
         namePanel.add(userRole);
         profilePanel.add(namePanel, BorderLayout.CENTER);
 
-        // Navigation panel
+        // Navigation buttons section
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
         navPanel.setBackground(sidebarColor);
         navPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
 
+        // Add spacing
         navPanel.add(Box.createVerticalStrut(30));
 
+        // Label above navigation
         JLabel generalLabel = new JLabel("General");
         generalLabel.setFont(boldFont);
         generalLabel.setBorder(new EmptyBorder(0, 10, 10, 0));
         generalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         navPanel.add(generalLabel);
 
+        // Create navigation buttons with icons
         JButton attendanceBtn = createNavButton("Attendance", "attendance.png");
         JButton employeeBtn = createNavButton("Employee", "employee.png");
         JButton payrollBtn = createNavButton("Payroll", "payroll.png");
-        
+
+        // Add buttons to sidebar
         navPanel.add(attendanceBtn);
         navPanel.add(Box.createVerticalStrut(5));
         navPanel.add(employeeBtn);
         navPanel.add(Box.createVerticalStrut(5));
         navPanel.add(payrollBtn);
 
-        // Search Section
-        JLabel searchLabel = new JLabel("Search Employee:");
-        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        searchLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        searchLabel.setBorder(new EmptyBorder(15, 10, 5, 0));
-        navPanel.add(searchLabel);
-
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.setBackground(sidebarColor);
-        searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        Color originalButtonColor = new Color(100, 149, 237);
-
-        JTextField searchField = new JTextField(12);
-        JButton searchButton = new JButton("Search") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                if (!isEnabled()) {
-                    g2.setColor(Color.GRAY);
-                } else if (getModel().isRollover()) {
-                    g2.setColor(new Color(30, 144, 255));
-                } else {
-                    g2.setColor(originalButtonColor);
-                }
-
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-
-            @Override
-            protected void paintBorder(Graphics g) {}
-        };
-
-        searchButton.setForeground(Color.WHITE);
-        searchButton.setFocusPainted(false);
-        searchButton.setContentAreaFilled(false);
-        searchButton.setOpaque(false);
-        searchButton.setPreferredSize(new Dimension(90, 30));
-
-        // Enter key triggers the search
-        searchField.addActionListener(e -> searchButton.doClick());
-
-        searchButton.addActionListener((ActionEvent e) -> {
-            String query = searchField.getText().trim();
-            cardLayout.show(contentPanel, "Employee");
-            employeePanel.searchEmployee(query);
-        });
-
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-        navPanel.add(searchPanel);
-
-        navPanel.add(Box.createVerticalGlue());
-
+        // Logout button with logic
         JButton logoutButton = createNavButton("Log-out", "logout.png");
         logoutButton.setForeground(Color.GRAY);
         logoutButton.addActionListener(e -> {
-            dispose();
-            SwingUtilities.invokeLater(() -> new LoginPanel().setVisible(true));
+            dispose(); // Close this window
+            SwingUtilities.invokeLater(() -> new LoginPanel().setVisible(true)); // Open login window
         });
 
+        // Add profile, nav, and logout to sidebar
         sidebar.add(profilePanel, BorderLayout.NORTH);
         sidebar.add(navPanel, BorderLayout.CENTER);
         sidebar.add(logoutButton, BorderLayout.SOUTH);
 
+        // Panel to switch between attendance, employee, and payroll views
         contentPanel = new JPanel(cardLayout) {
+            // Paint gradient background
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -158,78 +133,29 @@ public class DashboardPanel extends JFrame {
             }
         };
 
+        // Add panels to content area
         AttendancePanel attendancePanel = new AttendancePanel();
         contentPanel.add(attendancePanel, "Attendance");
         contentPanel.add(employeePanel, "Employee");
         contentPanel.add(new SalaryCalculatorPanel(), "Payroll");
 
+        // Button logic for showing specific panels
         attendanceBtn.addActionListener(e -> cardLayout.show(contentPanel, "Attendance"));
-        employeeBtn.addActionListener(e -> cardLayout.show(contentPanel, "Employee"));
+        
+        employeeBtn.addActionListener(e -> {
+        cardLayout.show(contentPanel, "Employee");
+        employeePanel.getSearchField().requestFocusInWindow();
+        
+        });
         payrollBtn.addActionListener(e -> cardLayout.show(contentPanel, "Payroll"));
 
+        // Add sidebar and main content to frame
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
-        setVisible(true);
+        setVisible(true); // Display the window
     }
-
-    class EmployeePanel extends JPanel {
-
-        static class Employee {
-            String empNo, name, birthday;
-
-            public Employee(String empNo, String name, String birthday) {
-                this.empNo = empNo;
-                this.name = name;
-                this.birthday = birthday;
-            }
-        }
-
-        private final Map<String, Employee> employees = new HashMap<>();
-        private final JLabel nameLabel = new JLabel("Name: ");
-        private final JLabel birthdayLabel = new JLabel("Birthday: ");
-        private final JLabel statusLabel = new JLabel("Enter Employee No and press 'Search'");
-
-        public EmployeePanel() {
-            setLayout(new BorderLayout());
-            setOpaque(false);
-            nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            birthdayLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            statusLabel.setForeground(Color.BLACK);
-
-            JPanel infoPanel = new JPanel();
-            infoPanel.setOpaque(false);
-            infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-            nameLabel.setForeground(Color.BLACK);
-            birthdayLabel.setForeground(Color.BLACK);
-            infoPanel.add(nameLabel);
-            infoPanel.add(birthdayLabel);
-            infoPanel.add(Box.createVerticalStrut(10));
-            infoPanel.add(statusLabel);
-            infoPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 0, 0));
-
-            add(infoPanel, BorderLayout.NORTH);
-
-            // Sample data
-            employees.put("10001", new Employee("10001", "Garcia, Manuel III", "10/11/1983"));
-            employees.put("10002", new Employee("10002", "Lim, Antonio", "06/19/1988"));
-            employees.put("10003", new Employee("10003", "Aquino, Bianca Sofia", "08/04/1989"));
-        }
-
-        public void searchEmployee(String empNo) {
-            Employee emp = employees.get(empNo.trim());
-            if (emp != null) {
-                nameLabel.setText("Name: " + emp.name);
-                birthdayLabel.setText("Birthday: " + emp.birthday);
-                statusLabel.setText("Employee found.");
-            } else {
-                nameLabel.setText("Name: ");
-                birthdayLabel.setText("Birthday: ");
-                statusLabel.setText("Employee not found.");
-            }
-        }
-    }
-
+    
+    // Creates a styled button for navigation with icon
     private JButton createNavButton(String text, String iconFileName) {
         JButton button = new JButton(text);
         button.setIcon(loadImageIcon("/assets/" + iconFileName, 20, 20));
@@ -245,6 +171,7 @@ public class DashboardPanel extends JFrame {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
 
+        // Hover effect for background color
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -260,6 +187,7 @@ public class DashboardPanel extends JFrame {
         return button;
     }
 
+    // Loads and scales an image icon from resources
     private ImageIcon loadImageIcon(String path, int width, int height) {
         URL imageUrl = getClass().getResource(path);
         if (imageUrl != null) {
@@ -271,4 +199,6 @@ public class DashboardPanel extends JFrame {
             return null;
         }
     }
+    
+    
 }

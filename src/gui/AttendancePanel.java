@@ -5,8 +5,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 
-public class AttendancePanel extends JPanel {
+public final class AttendancePanel extends JPanel {
 
     static class Attendance {
         String date, day, timeIn, breakOut, breakIn, timeOut, remarks;
@@ -29,13 +31,12 @@ public class AttendancePanel extends JPanel {
     }
 
     static class Employee {
-        String id, name, birthday;
+        String id, name;
         List<Attendance> records = new ArrayList<>();
 
         Employee(String id, String name, String birthday) {
             this.id = id;
             this.name = name;
-            this.birthday = birthday;
         }
 
         void add(Attendance a) {
@@ -44,37 +45,74 @@ public class AttendancePanel extends JPanel {
     }
 
     Map<String, Employee> data = new HashMap<>();
+    JLabel idLabel = new JLabel("Employee ID: ");
 
     JTextField input = new JTextField(10);
     JLabel nameLabel = new JLabel("Name: ");
-    JLabel birthdayLabel = new JLabel("Birthday: ");
     JLabel totalLabel = new JLabel("Total Hours Worked: ");
     DefaultTableModel model = new DefaultTableModel(
             new String[]{"Date", "Day", "Time In", "Break Out", "Break In", "Time Out", "Hours", "Remarks"}, 0);
     JTable table = new JTable(model);
+    
 
-    public AttendancePanel() {
-        setLayout(new BorderLayout());
-        loadData();
+   public AttendancePanel() {
+    setLayout(new BorderLayout());
+    loadData();
 
-        JButton search = new JButton("Search");
-        search.addActionListener(e -> showAttendance());
-        input.addActionListener(e -> showAttendance());
+    // Create transparent button
+    JButton search = new JButton("Search");
+    search.setFocusPainted(false);
+    search.setContentAreaFilled(false);
+    search.setBorderPainted(true);
+    search.setOpaque(false);
+    search.setForeground(Color.BLACK);
+    search.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    search.addActionListener(e -> showAttendance());
+    input.addActionListener(e -> showAttendance());
 
-        JPanel top = new JPanel();
-        top.add(new JLabel("Employee No:"));
-        top.add(input);
-        top.add(search);
+    // Top input panel
+    JPanel top = new JPanel();
+    top.setOpaque(false);
+    top.add(new JLabel("Employee No:"));
+    top.add(input);
+    top.add(search);
 
-        JPanel info = new JPanel(new GridLayout(3, 1));
-        info.add(nameLabel);
-        info.add(birthdayLabel);
-        info.add(totalLabel);
+    // Header info above table
+    nameLabel.setHorizontalAlignment(SwingConstants.LEFT);
+    totalLabel.setHorizontalAlignment(SwingConstants.LEFT);
+    idLabel.setHorizontalAlignment(SwingConstants.LEFT);
 
-        this.add(top, BorderLayout.NORTH);
-        this.add(info, BorderLayout.WEST);
-        this.add(new JScrollPane(table), BorderLayout.CENTER);
-    }
+    JPanel header = new JPanel(new GridLayout(1, 3));
+    header.setOpaque(false);
+    header.add(nameLabel);
+    header.add(idLabel);
+    header.add(totalLabel);
+
+    // Table with transparent scroll
+    table.setOpaque(false);
+    ((DefaultTableCellRenderer) table.getDefaultRenderer(Object.class)).setOpaque(false);
+
+    JScrollPane scrollPane = new JScrollPane(table);
+    scrollPane.setOpaque(false);
+    scrollPane.getViewport().setOpaque(false);
+
+    // Combine header and table in a center panel
+    JPanel center = new JPanel(new BorderLayout());
+    center.setOpaque(false);
+    center.add(header, BorderLayout.NORTH);
+    center.add(scrollPane, BorderLayout.CENTER);
+
+    // Wrap everything in a margin panel
+    JPanel marginPanel = new JPanel(new BorderLayout());
+    marginPanel.setOpaque(false);
+    marginPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30)); // top, left, bottom, right
+    marginPanel.add(top, BorderLayout.NORTH);
+    marginPanel.add(center, BorderLayout.CENTER);
+
+    // Add to main panel
+    this.add(marginPanel, BorderLayout.CENTER);
+}
+
 
     void loadData() {
         Employee e1 = new Employee("10001", "Garcia, Manuel III", "10/11/1983");
@@ -104,43 +142,48 @@ public class AttendancePanel extends JPanel {
     }
 
     void showAttendance() {
-        String id = input.getText().trim();
-        Employee emp = data.get(id);
-        model.setRowCount(0);
+    String id = input.getText().trim();
+    Employee emp = data.get(id);
+    model.setRowCount(0);
 
-        if (emp != null) {
-            nameLabel.setText("Name: " + emp.name);
-            birthdayLabel.setText("Birthday: " + emp.birthday);
+    if (emp != null) {
+        nameLabel.setText("Name: " + emp.name);
+        idLabel.setText("Employee ID: " + emp.id);
 
-            double total = 0;
-            for (Attendance a : emp.records) {
-                model.addRow(a.toRow());
-                total += a.hours;
-            }
-            totalLabel.setText("Total Hours Worked: " + total + " hrs");
-        } else {
-            nameLabel.setText("Name: ");
-            birthdayLabel.setText("Birthday: ");
-            totalLabel.setText("Total Hours Worked: ");
-            JOptionPane.showMessageDialog(this, "Employee not found.");
+        double total = 0;
+        for (Attendance a : emp.records) {
+            model.addRow(a.toRow());
+            total += a.hours;
         }
+        totalLabel.setText("Total Hours Worked: " + total + " hrs");
+    } else {
+        nameLabel.setText("Name: ");
+        idLabel.setText("Employee ID: ");
+        totalLabel.setText("Total Hours Worked: ");
+        JOptionPane.showMessageDialog(this, "Employee not found.");
     }
+}
 
     @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
+    
 
-        Graphics2D g2d = (Graphics2D) g.create();
+    Graphics2D g2d = (Graphics2D) g.create();
 
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int width = getWidth();
-        int height = getHeight();
+    int width = getWidth();
+    int height = getHeight();
 
-        GradientPaint gradient = new GradientPaint(0, 0, new Color(135, 206, 250), 0, height, Color.WHITE);
-        g2d.setPaint(gradient);
-        g2d.fillRect(0, 0, width, height);
+    // Use same gradient as Dashboard
+    Color gradientStart = new Color(255, 204, 229);
+    Color gradientEnd = new Color(255, 229, 180);
 
-        g2d.dispose();
-    }
+    GradientPaint gradient = new GradientPaint(0, 0, gradientStart, 0, height, gradientEnd);
+    g2d.setPaint(gradient);
+    g2d.fillRect(0, 0, width, height);
+
+    g2d.dispose();
+}
 }
