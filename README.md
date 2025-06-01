@@ -17,8 +17,11 @@ Computes the net weekly salary after applying generic deductions (including SSS,
 
 
 System Access
+
 Username: admin
+
 Password: 1234
+
 
 Development Team
 
@@ -27,6 +30,7 @@ Design and Frontend Development:
 Rhynne Gracelle Pontanilla
 
 Carl Justine Pontanilla
+
 
 Backend Development:
 
