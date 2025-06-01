@@ -1,17 +1,19 @@
-This is a Java-based payroll system for **MotorPH**, designed to manage employee records and weekly salary computation. 
-It includes government deduction calculations such as SSS, PhilHealth, Pag-IBIG, and withholding tax. The application is built using Java Swing for the GUI and text files for data storage.
+MotorPH Payroll System
+This Java-based payroll system is developed for MotorPH to streamline employee management and automate weekly salary computation. It features integrated calculations for government-mandated deductions, including SSS, PhilHealth, Pag-IBIG, and withholding tax. The system is developed using Java Swing for the graphical user interface (GUI) and utilizes text files for data storage and retrieval.
 
+Note: This version supports three (3) employees only, identified by the following employee numbers: 10001, 10002, and 10003.
+
+System Access
 Username: admin
 Password: 1234
 
-Design and Frontend of the program:
+Development Team
+Design and Frontend Development:
+-Rhynne Gracelle Pontanilla
+-Carl Justine Pontanilla
 
---Rhynne Gracelle Pontanilla
+Backend Development:
+-Ghaby Gonzales – Responsible for implementing the attendance system and employee information management
+-Conrado Santos – Developed modules for payroll computation, weekly salary processing, and deduction calculations
 
---Carl Justine Pontanilla
 
-Backend of the program:
-
---Ghaby Gonzales- coding attendance and employee info
-
---Conrado Santos- coding all payroll, weekly and deduction of salary
