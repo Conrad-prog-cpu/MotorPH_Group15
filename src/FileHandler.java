@@ -2,6 +2,9 @@
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReaderBuilder;
+import java.io.BufferedReader;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -9,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -27,51 +31,60 @@ public class FileHandler {
 
     // Read and validate employee.txt
     public void readEmployeeFile() {
-        String filePath = folderPath + "/employee.txt";
+    File file = new File(folderPath + "/employee.txt");
 
-        try {
-            File dir = new File(folderPath);
-            if (!dir.exists()) {
-                dir.mkdirs(); // Create folder if it does not exist
-                System.out.println("Created folder: " + folderPath);
-            }
-
-            File file = new File(filePath);
-            if (!file.exists()) {
-                System.out.println("employee.txt file not found.");
-                return;
-            }
-
-            try (CSVReader reader = new CSVReader(new FileReader(file))) {
-                String[] header = reader.readNext();
-                if (header == null) {
-                    System.out.println("employee.txt is empty or missing headers.");
-                    return;
-                }
-
-                for (String column : header) {
-                    employeeHeaders.add(column.trim()); // Save headers in ArrayList
-                }
-
-                String[] line;
-                while ((line = reader.readNext()) != null) {
-                    if (line.length != header.length) {
-                        System.out.println("Skipping malformed row in employee.txt");
-                        continue;
-                    }
-                    employeeData.add(line);
-                }
-
-                System.out.println("Employee data loaded successfully.");
-
-            } catch (CsvValidationException ex) {
-                System.getLogger(FileHandler.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-            }
-
-        } catch (IOException e) {
-            System.out.println("Error reading employee.txt: " + e.getMessage());
-        }
+    if (!file.exists()) {
+        System.out.println("❌ employee.txt not found.");
+        return;
     }
+
+    employeeHeaders.clear();
+    employeeData.clear();
+
+    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        String line;
+        boolean isFirstLine = true;
+
+        while ((line = br.readLine()) != null) {
+            // Skip empty lines
+            if (line.trim().isEmpty()) continue;
+
+            // Split using regex: match semicolon not inside quotes
+            String[] fields = line.split("(?=(?:[^\"]*\"[^\"]*\")*[^\"]*)\\;");
+
+            // Remove outer quotes and trim
+            for (int i = 0; i < fields.length; i++) {
+                fields[i] = fields[i].replaceAll("^\"|\"$", "").trim();
+            }
+
+            if (isFirstLine) {
+                employeeHeaders.addAll(Arrays.asList(fields));
+                isFirstLine = false;
+            } else {
+                if (fields.length < employeeHeaders.size()) {
+                    System.out.println("⚠ Padding short row: " + Arrays.toString(fields));
+                    String[] fixed = Arrays.copyOf(fields, employeeHeaders.size());
+                    for (int i = fields.length; i < employeeHeaders.size(); i++) {
+                        fixed[i] = "";
+                    }
+                    employeeData.add(fixed);
+                } else if (fields.length > employeeHeaders.size()) {
+                    System.out.println("⚠ Trimming long row: " + Arrays.toString(fields));
+                    String[] fixed = Arrays.copyOf(fields, employeeHeaders.size());
+                    employeeData.add(fixed);
+                } else {
+                    employeeData.add(fields);
+                }
+            }
+        }
+
+        System.out.println("✅ employee.txt loaded: " + employeeData.size() + " rows");
+
+    } catch (IOException e) {
+        System.out.println("❌ Error reading employee file: " + e.getMessage());
+    }
+}
+
 
     // Read and validate attendance.txt
     public void readAttendanceFile() {
@@ -176,13 +189,21 @@ public class FileHandler {
     }
 
     // Getter for headers
-    public List<String> getEmployeeHeaders() {
-        return employeeHeaders;
+    public String[] getEmployeeHeaders() {
+       return new String[]{
+        "Employee #","Last Name","First Name","Birthday","Address","Phone Number","SSS #","Philhealth #",
+        "TIN #","Pag-ibig #","Status","Position","Immediate Supervisor","Basic Salary","Rice Subsidy","Phone Allowance",
+        "Clothing Allowance","Gross Semi-monthly Rate","Hourly Rate"
+           
+        
+    };
     }
 
     public List<String> getAttendanceHeaders() {
         return attendanceHeaders;
     }
+    
+    
     
     // This code is for testing purposed
 //    public void displayFirstThreeRows(List<String[]> data, String title) {

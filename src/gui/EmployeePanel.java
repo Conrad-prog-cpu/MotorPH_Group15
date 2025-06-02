@@ -25,17 +25,14 @@ public class EmployeePanel extends JPanel {
 
         setupSampleData();
 
-        // === TOP PANEL ===
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
         topPanel.setBorder(new EmptyBorder(20, 50, 0, 50));
 
-        // === LEFT SIDE: Search Field + Button ===
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftPanel.setOpaque(false);
         leftPanel.add(buildSearchPanel());
 
-        // === RIGHT SIDE: View + Add Buttons ===
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightPanel.setOpaque(false);
 
@@ -49,11 +46,9 @@ public class EmployeePanel extends JPanel {
         addButton.addActionListener(e -> showAddEmployeeDialog());
         rightPanel.add(addButton);
 
-        // === Combine into topPanel ===
         topPanel.add(leftPanel, BorderLayout.WEST);
         topPanel.add(rightPanel, BorderLayout.EAST);
 
-        // === Table Section ===
         String[] columns = {"Employee No.", "Last Name", "First Name", "Birthday", "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."};
         tableModel = new DefaultTableModel(columns, 0);
         employeeTable = new JTable(tableModel);
@@ -115,16 +110,24 @@ public class EmployeePanel extends JPanel {
     }
 
     private void loadEmployeesToTable() {
+        tableModel.setRowCount(0);
         for (Employee emp : employeeMap.values()) {
             addEmployeeToTable(emp);
         }
     }
 
+    private void addEmployeeToTable(Employee emp) {
+        tableModel.addRow(new Object[]{
+                emp.getId(), emp.getLastName(), emp.getFirstName(), emp.getBirthday(),
+                emp.getSss(), emp.getPhilHealth(), emp.getTin(), emp.getPagibig()
+        });
+    }
+//ghab start part
     private void showAddEmployeeDialog() {
         JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Add New Employee", Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setLayout(new GridLayout(9, 2, 20, 15));
 
-        String[] labels = {"Employee #", "Last Name", "First Name", "Birthday", "SSS #", "PhilHealth #", "TIN #", "Pag-IBIG #"};
+        String[] labels = {"Employee No.", "Last Name", "First Name", "Birthday", "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."};
         JTextField[] fields = new JTextField[labels.length];
 
         for (int i = 0; i < labels.length; i++) {
@@ -156,8 +159,8 @@ public class EmployeePanel extends JPanel {
             }
 
             Employee emp = new Employee(
-                fields[0].getText().trim(), fields[1].getText().trim(), fields[2].getText().trim(), fields[3].getText().trim(),
-                fields[4].getText().trim(), fields[5].getText().trim(), fields[6].getText().trim(), fields[7].getText().trim()
+                    fields[0].getText().trim(), fields[1].getText().trim(), fields[2].getText().trim(), fields[3].getText().trim(),
+                    fields[4].getText().trim(), fields[5].getText().trim(), fields[6].getText().trim(), fields[7].getText().trim()
             );
 
             employeeMap.put(emp.getId(), emp);
@@ -172,40 +175,59 @@ public class EmployeePanel extends JPanel {
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
-
-    private void addEmployeeToTable(Employee emp) {
-        tableModel.addRow(new Object[]{
-            emp.getId(), emp.getLastName(), emp.getFirstName(), emp.getBirthday(),
-            emp.getSss(), emp.getPhilHealth(), emp.getTin(), emp.getPagibig()
-        });
-    }
-
+// ghab end part
     private void showSelectedEmployeeDetails() {
-        int selectedRow = employeeTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            String empId = (String) tableModel.getValueAt(selectedRow, 0);
-            Employee emp = employeeMap.get(empId);
+    int selectedRow = employeeTable.getSelectedRow();
+    if (selectedRow >= 0) {
+        String empId = (String) tableModel.getValueAt(selectedRow, 0);
+        Employee emp = employeeMap.get(empId);
 
-            if (emp != null) {
-                JFrame detailsFrame = new JFrame("Employee Details - " + emp.getFullName());
-                detailsFrame.setLayout(new GridLayout(0, 2, 10, 10));
-                detailsFrame.add(new JLabel("Employee No.:")); detailsFrame.add(new JLabel(emp.getId()));
-                detailsFrame.add(new JLabel("Last Name:")); detailsFrame.add(new JLabel(emp.getLastName()));
-                detailsFrame.add(new JLabel("First Name:")); detailsFrame.add(new JLabel(emp.getFirstName()));
-                detailsFrame.add(new JLabel("Birthday:")); detailsFrame.add(new JLabel(emp.getBirthday()));
-                detailsFrame.add(new JLabel("SSS No.:")); detailsFrame.add(new JLabel(emp.getSss()));
-                detailsFrame.add(new JLabel("PhilHealth No.:")); detailsFrame.add(new JLabel(emp.getPhilHealth()));
-                detailsFrame.add(new JLabel("TIN No.:")); detailsFrame.add(new JLabel(emp.getTin()));
-                detailsFrame.add(new JLabel("Pag-IBIG No.:")); detailsFrame.add(new JLabel(emp.getPagibig()));
+        if (emp != null) {
+            JDialog detailsDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Employee Details", Dialog.ModalityType.APPLICATION_MODAL);
+            detailsDialog.setLayout(new GridLayout(0, 2, 10, 10));
+            detailsDialog.setSize(500, 600);
 
-                detailsFrame.pack();
-                detailsFrame.setLocationRelativeTo(this);
-                detailsFrame.setVisible(true);
+            detailsDialog.add(new JLabel("Employee No:"));          detailsDialog.add(new JLabel(p(emp.getId())));
+            detailsDialog.add(new JLabel("Last Name:"));            detailsDialog.add(new JLabel(p(emp.getLastName())));
+            detailsDialog.add(new JLabel("First Name:"));           detailsDialog.add(new JLabel(p(emp.getFirstName())));
+            detailsDialog.add(new JLabel("Birthday:"));             detailsDialog.add(new JLabel(p(emp.getBirthday())));
+            detailsDialog.add(new JLabel("Address:"));              detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Phone Number:"));         detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("SSS No:"));               detailsDialog.add(new JLabel(p(emp.getSss())));
+            detailsDialog.add(new JLabel("PhilHealth No:"));        detailsDialog.add(new JLabel(p(emp.getPhilHealth())));
+            detailsDialog.add(new JLabel("TIN No:"));               detailsDialog.add(new JLabel(p(emp.getTin())));
+            detailsDialog.add(new JLabel("Pag-IBIG No:"));          detailsDialog.add(new JLabel(p(emp.getPagibig())));
+            detailsDialog.add(new JLabel("Status:"));               detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Position:"));             detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Immediate Supervisor:"));detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Basic Salary:"));         detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Rice Subsidy:"));         detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Phone Allowance:"));      detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Clothing Allowance:"));   detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Gross Semi-monthly Rate:"));detailsDialog.add(new JLabel("[Not Provided]"));
+            detailsDialog.add(new JLabel("Hourly Rate:"));          detailsDialog.add(new JLabel("[Not Provided]"));
+
+            JButton closeButton = new JButton("Close");
+            styleMinimalButton(closeButton, 80, 30);
+            closeButton.addActionListener(e -> detailsDialog.dispose());
+
+            detailsDialog.add(new JLabel("")); // filler
+            detailsDialog.add(closeButton);
+
+            detailsDialog.pack();
+            detailsDialog.setLocationRelativeTo(this);
+            detailsDialog.setVisible(true);
             }
         } else {
             JOptionPane.showMessageDialog(this, "Please select an employee first.");
         }
     }
+
+    private String p(String val) {
+        return (val == null || val.trim().isEmpty()) ? "[Not Provided]" : val;
+    }
+
+
 
     private void styleMinimalButton(JButton button, int width, int height) {
         button.setFocusPainted(false);
@@ -288,9 +310,5 @@ public class EmployeePanel extends JPanel {
         public String getPhilHealth() { return philHealth; }
         public String getTin() { return tin; }
         public String getPagibig() { return pagibig; }
-
-        public String getFullName() {
-            return firstName + " " + lastName;
-        }
     }
 }

@@ -144,7 +144,7 @@ public class DashboardPanel extends JFrame {
         
         employeeBtn.addActionListener(e -> {
         cardLayout.show(contentPanel, "Employee");
-        employeePanel.getSearchField().requestFocusInWindow();
+        
         
         });
         payrollBtn.addActionListener(e -> cardLayout.show(contentPanel, "Payroll"));
