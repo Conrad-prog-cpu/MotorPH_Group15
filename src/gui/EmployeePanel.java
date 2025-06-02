@@ -25,14 +25,39 @@ public class EmployeePanel extends JPanel {
     // UI components for search
     private final JTextField searchField = new JTextField(10);
     private final JButton searchButton = new JButton("Search");
-    
+    private final JButton addEmployeeButton = new JButton("+ Add Employee");
 
+    private void setupAddEmployeeButton() {
+    addEmployeeButton.setFocusPainted(false);
+    addEmployeeButton.setContentAreaFilled(false);
+    addEmployeeButton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    addEmployeeButton.setForeground(Color.BLACK);
+    addEmployeeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    
+    addEmployeeButton.addMouseListener(new java.awt.event.MouseAdapter() {
+        @Override
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+            addEmployeeButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+            addEmployeeButton.setForeground(Color.BLUE);
+        }
+
+        @Override
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+            addEmployeeButton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            addEmployeeButton.setForeground(Color.BLACK);
+        }
+    });
+
+    addEmployeeButton.addActionListener(e -> showAddEmployeeDialog());
+}
+    
     // Sample employee data (ID -> Employee object)
     private final Map<String, Employee> employeeMap = new LinkedHashMap<>();
 
     public EmployeePanel() {
         setLayout(new BorderLayout());
         setOpaque(false); // Needed for gradient background
+        setupAddEmployeeButton();
 
         // Sample employee entries
         employeeMap.put("10001", new Employee("10001", "Garcia, Manuel III", "10/11/1983"));
@@ -93,7 +118,9 @@ public class EmployeePanel extends JPanel {
             String empId = searchField.getText().trim();
             displayEmployeeById(empId);
         });
-
+        
+        
+        
         // ↵ Enter key also triggers search
         searchField.addActionListener(e -> searchButton.doClick());
 
@@ -112,7 +139,13 @@ public class EmployeePanel extends JPanel {
         infoPanel.add(statusLabel);
 
         // Add panels to main layout
-        add(searchPanel, BorderLayout.NORTH);
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        topPanel.add(searchPanel, BorderLayout.WEST);
+        topPanel.add(addEmployeeButton, BorderLayout.EAST);
+    
+        add(topPanel, BorderLayout.NORTH);
+
         add(infoPanel, BorderLayout.CENTER);
     }
 
@@ -135,6 +168,57 @@ public class EmployeePanel extends JPanel {
             searchField.selectAll();
         }
     }
+    private void showAddEmployeeDialog() {
+    JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Add New Employee", Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.setLayout(new GridLayout(11, 5, 20, 15));
+    
+    String[] labels = {
+        "Employee #", "Last Name", "First Name", "Birthday", "Address",
+        "Phone Number", "SSS #", "Philhealth #", "TIN #", "Pag-ibig #"
+    };
+    
+    JTextField[] fields = new JTextField[labels.length];
+    for (int i = 0; i < labels.length; i++) {
+        dialog.add(new JLabel(labels[i]));
+        fields[i] = new JTextField();
+        dialog.add(fields[i]);
+    }
+
+    JButton saveButton = new JButton("Save");
+    JButton cancelButton = new JButton("Cancel");
+    
+    dialog.add(saveButton);
+    dialog.add(cancelButton);
+    
+    saveButton.addActionListener(e -> {
+        for (JTextField field : fields) {
+            if (field.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        String empId = fields[0].getText().trim();
+        String fullName = fields[2].getText().trim() + " " + fields[1].getText().trim(); // First + Last
+        String birthday = fields[3].getText().trim();
+
+        if (employeeMap.containsKey(empId)) {
+            JOptionPane.showMessageDialog(dialog, "Employee ID already exists.", "Duplicate Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        employeeMap.put(empId, new Employee(empId, fullName, birthday));
+        JOptionPane.showMessageDialog(dialog, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        dialog.dispose();
+        displayEmployeeById(empId);
+    });
+
+    cancelButton.addActionListener(e -> dialog.dispose());
+
+    dialog.pack();
+    dialog.setLocationRelativeTo(this);
+    dialog.setVisible(true);
+}
 
     // Paint gradient background
     @Override
