@@ -1,10 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package gui;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.LinkedHashMap;
@@ -12,215 +10,253 @@ import java.util.Map;
 
 public class EmployeePanel extends JPanel {
 
-    // Gradient background colors (same as Dashboard)
     private final Color gradientStart = new Color(255, 204, 229);
     private final Color gradientEnd = new Color(255, 229, 180);
 
-    // Labels for display
-    private final JLabel idLabel = new JLabel("Employee ID: ");
-    private final JLabel nameLabel = new JLabel("Full Name: ");
-    private final JLabel birthdayLabel = new JLabel("Birthday: ");
-    private final JLabel statusLabel = new JLabel("Input an employee ID to view details.");
-
-    // UI components for search
-    private final JTextField searchField = new JTextField(10);
-    private final JButton searchButton = new JButton("Search");
-    private final JButton addEmployeeButton = new JButton("+ Add Employee");
-
-    private void setupAddEmployeeButton() {
-    addEmployeeButton.setFocusPainted(false);
-    addEmployeeButton.setContentAreaFilled(false);
-    addEmployeeButton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-    addEmployeeButton.setForeground(Color.BLACK);
-    addEmployeeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    
-    addEmployeeButton.addMouseListener(new java.awt.event.MouseAdapter() {
-        @Override
-        public void mouseEntered(java.awt.event.MouseEvent evt) {
-            addEmployeeButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-            addEmployeeButton.setForeground(Color.BLUE);
-        }
-
-        @Override
-        public void mouseExited(java.awt.event.MouseEvent evt) {
-            addEmployeeButton.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-            addEmployeeButton.setForeground(Color.BLACK);
-        }
-    });
-
-    addEmployeeButton.addActionListener(e -> showAddEmployeeDialog());
-}
-    
-    // Sample employee data (ID -> Employee object)
+    private final DefaultTableModel tableModel;
+    private final JTable employeeTable;
     private final Map<String, Employee> employeeMap = new LinkedHashMap<>();
+
+    private final JTextField searchField = new JTextField(20);
 
     public EmployeePanel() {
         setLayout(new BorderLayout());
-        setOpaque(false); // Needed for gradient background
-        setupAddEmployeeButton();
+        setOpaque(false);
 
-        // Sample employee entries
-        employeeMap.put("10001", new Employee("10001", "Garcia, Manuel III", "10/11/1983"));
-        employeeMap.put("10002", new Employee("10002", "Lim, Antonio", "06/19/1988"));
-        employeeMap.put("10003", new Employee("10003", "Aquino, Bianca Sofia", "08/04/1989"));
+        setupSampleData();
 
-        // Fonts
-        Font labelFont = new Font("Segoe UI", Font.BOLD, 20);
-        Font statusFont = new Font("Segoe UI", Font.PLAIN, 13);
-
-        idLabel.setFont(labelFont);
-        nameLabel.setFont(labelFont);
-        birthdayLabel.setFont(labelFont);
-        statusLabel.setFont(statusFont);
-        statusLabel.setForeground(Color.DARK_GRAY);
-
-        idLabel.setForeground(Color.BLACK);
-        nameLabel.setForeground(Color.BLACK);
-        birthdayLabel.setForeground(Color.BLACK);
-
-        // 🔍 Search panel setup
-        JPanel searchPanel = new JPanel();
-        searchPanel.setOpaque(false);
-        searchPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 0, 0));
-
-        JLabel searchLabel = new JLabel("Enter Employee ID:");
-        searchLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-
-        searchPanel.add(searchLabel);
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-        
-        // Make button transparent
-        searchButton.setFocusPainted(false);
-        searchButton.setContentAreaFilled(false);
-        searchButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0)));
-        searchButton.setForeground(Color.BLACK);
-        searchButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        // Hover effect
-        searchButton.addMouseListener(new java.awt.event.MouseAdapter() {
-         @Override
-        public void mouseEntered(java.awt.event.MouseEvent evt) {
-        searchButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        searchButton.setForeground(Color.BLUE); // Optional hover color
-    }
-
-    @Override
-    public void mouseExited(java.awt.event.MouseEvent evt) {
-        searchButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0)));
-        searchButton.setForeground(Color.BLACK);
-    }
-});
-
-        // 🔘 Button action
-        searchButton.addActionListener((ActionEvent e) -> {
-            String empId = searchField.getText().trim();
-            displayEmployeeById(empId);
-        });
-        
-        
-        
-        // ↵ Enter key also triggers search
-        searchField.addActionListener(e -> searchButton.doClick());
-
-        // 📄 Info display panel
-        JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        infoPanel.setOpaque(false);
-        infoPanel.setBorder(BorderFactory.createEmptyBorder(30, 50, 0, 0));
-
-        infoPanel.add(idLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(nameLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(birthdayLabel);
-        infoPanel.add(Box.createVerticalStrut(20));
-        infoPanel.add(statusLabel);
-
-        // Add panels to main layout
+        // === TOP PANEL ===
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
-        topPanel.add(searchPanel, BorderLayout.WEST);
-        topPanel.add(addEmployeeButton, BorderLayout.EAST);
-    
+        topPanel.setBorder(new EmptyBorder(20, 50, 0, 50));
+
+        // === LEFT SIDE: Search Field + Button ===
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        leftPanel.setOpaque(false);
+        leftPanel.add(buildSearchPanel());
+
+        // === RIGHT SIDE: View + Add Buttons ===
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightPanel.setOpaque(false);
+
+        JButton viewButton = new JButton("View Employee");
+        styleMinimalButton(viewButton, 120, 36);
+        viewButton.addActionListener(e -> showSelectedEmployeeDetails());
+        rightPanel.add(viewButton);
+
+        JButton addButton = new JButton("Add Employee");
+        styleMinimalButton(addButton, 120, 36);
+        addButton.addActionListener(e -> showAddEmployeeDialog());
+        rightPanel.add(addButton);
+
+        // === Combine into topPanel ===
+        topPanel.add(leftPanel, BorderLayout.WEST);
+        topPanel.add(rightPanel, BorderLayout.EAST);
+
+        // === Table Section ===
+        String[] columns = {"Employee No.", "Last Name", "First Name", "Birthday", "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."};
+        tableModel = new DefaultTableModel(columns, 0);
+        employeeTable = new JTable(tableModel);
+        loadEmployeesToTable();
+
+        JScrollPane scrollPane = new JScrollPane(employeeTable);
+        scrollPane.setBorder(new EmptyBorder(20, 50, 10, 50));
+
         add(topPanel, BorderLayout.NORTH);
-
-        add(infoPanel, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
-    // Method to update employee info based on ID
-    public void displayEmployeeById(String empId) {
-        Employee emp = employeeMap.get(empId.trim());
-        if (emp != null) {
-            idLabel.setText("Employee ID: " + emp.getId());
-            nameLabel.setText("Full Name: " + emp.getName());
-            birthdayLabel.setText("Birthday: " + emp.getBirthday());
-            statusLabel.setText("Employee found.");
-            searchField.requestFocus();
-            searchField.selectAll();
-       } else {
-            idLabel.setText("Employee ID: ");
-            nameLabel.setText("Full Name: ");
-            birthdayLabel.setText("Birthday: ");
-            statusLabel.setText("Employee not found.");
-            searchField.requestFocus();
-            searchField.selectAll();
-        }
-    }
-    private void showAddEmployeeDialog() {
-    JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Add New Employee", Dialog.ModalityType.APPLICATION_MODAL);
-    dialog.setLayout(new GridLayout(11, 5, 20, 15));
-    
-    String[] labels = {
-        "Employee #", "Last Name", "First Name", "Birthday", "Address",
-        "Phone Number", "SSS #", "Philhealth #", "TIN #", "Pag-ibig #"
-    };
-    
-    JTextField[] fields = new JTextField[labels.length];
-    for (int i = 0; i < labels.length; i++) {
-        dialog.add(new JLabel(labels[i]));
-        fields[i] = new JTextField();
-        dialog.add(fields[i]);
+    private JPanel buildSearchPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        panel.setOpaque(false);
+
+        searchField.setToolTipText("Search by ID, Last Name, or First Name");
+        searchField.setPreferredSize(new Dimension(200, 36));
+        searchField.setBackground(Color.WHITE);
+        searchField.setForeground(Color.BLACK);
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+
+        JButton searchButton = new JButton("Search");
+        styleColoredButton(searchButton, new Color(30, 144, 255), 80, 36);
+        searchButton.addActionListener(this::performSearch);
+
+        panel.add(searchField);
+        panel.add(searchButton);
+
+        return panel;
     }
 
-    JButton saveButton = new JButton("Save");
-    JButton cancelButton = new JButton("Cancel");
-    
-    dialog.add(saveButton);
-    dialog.add(cancelButton);
-    
-    saveButton.addActionListener(e -> {
-        for (JTextField field : fields) {
-            if (field.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
+    private void performSearch(ActionEvent e) {
+        String query = searchField.getText().trim().toLowerCase();
+        tableModel.setRowCount(0);
 
-        String empId = fields[0].getText().trim();
-        String fullName = fields[2].getText().trim() + " " + fields[1].getText().trim(); // First + Last
-        String birthday = fields[3].getText().trim();
-
-        if (employeeMap.containsKey(empId)) {
-            JOptionPane.showMessageDialog(dialog, "Employee ID already exists.", "Duplicate Error", JOptionPane.WARNING_MESSAGE);
+        if (query.isEmpty()) {
+            loadEmployeesToTable();
             return;
         }
 
-        employeeMap.put(empId, new Employee(empId, fullName, birthday));
-        JOptionPane.showMessageDialog(dialog, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        dialog.dispose();
-        displayEmployeeById(empId);
-    });
+        for (Employee emp : employeeMap.values()) {
+            if (emp.getId().toLowerCase().contains(query) ||
+                emp.getLastName().toLowerCase().contains(query) ||
+                emp.getFirstName().toLowerCase().contains(query)) {
+                addEmployeeToTable(emp);
+            }
+        }
+    }
 
-    cancelButton.addActionListener(e -> dialog.dispose());
+    private void setupSampleData() {
+        employeeMap.put("10001", new Employee("10001", "Garcia", "Manuel III", "10/11/1983", "SSS001", "PH001", "TIN001", "PAG001"));
+        employeeMap.put("10002", new Employee("10002", "Lim", "Antonio", "06/19/1988", "SSS002", "PH002", "TIN002", "PAG002"));
+        employeeMap.put("10003", new Employee("10003", "Aquino", "Bianca Sofia", "08/04/1989", "SSS003", "PH003", "TIN003", "PAG003"));
+    }
 
-    dialog.pack();
-    dialog.setLocationRelativeTo(this);
-    dialog.setVisible(true);
-}
+    private void loadEmployeesToTable() {
+        for (Employee emp : employeeMap.values()) {
+            addEmployeeToTable(emp);
+        }
+    }
 
-    // Paint gradient background
+    private void showAddEmployeeDialog() {
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Add New Employee", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setLayout(new GridLayout(9, 2, 20, 15));
+
+        String[] labels = {"Employee #", "Last Name", "First Name", "Birthday", "SSS #", "PhilHealth #", "TIN #", "Pag-IBIG #"};
+        JTextField[] fields = new JTextField[labels.length];
+
+        for (int i = 0; i < labels.length; i++) {
+            dialog.add(new JLabel(labels[i]));
+            fields[i] = new JTextField();
+            dialog.add(fields[i]);
+        }
+
+        JButton saveButton = new JButton("Save");
+        JButton cancelButton = new JButton("Cancel");
+        styleMinimalButton(saveButton, 100, 30);
+        styleMinimalButton(cancelButton, 100, 30);
+
+        dialog.add(saveButton);
+        dialog.add(cancelButton);
+
+        saveButton.addActionListener(e -> {
+            for (JTextField field : fields) {
+                if (field.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            String empId = fields[0].getText().trim();
+            if (employeeMap.containsKey(empId)) {
+                JOptionPane.showMessageDialog(dialog, "Employee ID already exists.", "Duplicate Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            Employee emp = new Employee(
+                fields[0].getText().trim(), fields[1].getText().trim(), fields[2].getText().trim(), fields[3].getText().trim(),
+                fields[4].getText().trim(), fields[5].getText().trim(), fields[6].getText().trim(), fields[7].getText().trim()
+            );
+
+            employeeMap.put(emp.getId(), emp);
+            addEmployeeToTable(emp);
+            JOptionPane.showMessageDialog(dialog, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            dialog.dispose();
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    private void addEmployeeToTable(Employee emp) {
+        tableModel.addRow(new Object[]{
+            emp.getId(), emp.getLastName(), emp.getFirstName(), emp.getBirthday(),
+            emp.getSss(), emp.getPhilHealth(), emp.getTin(), emp.getPagibig()
+        });
+    }
+
+    private void showSelectedEmployeeDetails() {
+        int selectedRow = employeeTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            String empId = (String) tableModel.getValueAt(selectedRow, 0);
+            Employee emp = employeeMap.get(empId);
+
+            if (emp != null) {
+                JFrame detailsFrame = new JFrame("Employee Details - " + emp.getFullName());
+                detailsFrame.setLayout(new GridLayout(0, 2, 10, 10));
+                detailsFrame.add(new JLabel("Employee No.:")); detailsFrame.add(new JLabel(emp.getId()));
+                detailsFrame.add(new JLabel("Last Name:")); detailsFrame.add(new JLabel(emp.getLastName()));
+                detailsFrame.add(new JLabel("First Name:")); detailsFrame.add(new JLabel(emp.getFirstName()));
+                detailsFrame.add(new JLabel("Birthday:")); detailsFrame.add(new JLabel(emp.getBirthday()));
+                detailsFrame.add(new JLabel("SSS No.:")); detailsFrame.add(new JLabel(emp.getSss()));
+                detailsFrame.add(new JLabel("PhilHealth No.:")); detailsFrame.add(new JLabel(emp.getPhilHealth()));
+                detailsFrame.add(new JLabel("TIN No.:")); detailsFrame.add(new JLabel(emp.getTin()));
+                detailsFrame.add(new JLabel("Pag-IBIG No.:")); detailsFrame.add(new JLabel(emp.getPagibig()));
+
+                detailsFrame.pack();
+                detailsFrame.setLocationRelativeTo(this);
+                detailsFrame.setVisible(true);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select an employee first.");
+        }
+    }
+
+    private void styleMinimalButton(JButton button, int width, int height) {
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setOpaque(false);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setPreferredSize(new Dimension(width, height));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.BLACK);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g2, c);
+                g2.dispose();
+            }
+        });
+
+        button.setMargin(new Insets(0, 15, 0, 15));
+    }
+
+    private void styleColoredButton(JButton button, Color bgColor, int width, int height) {
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setOpaque(false);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setPreferredSize(new Dimension(width, height));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(bgColor);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g2, c);
+                g2.dispose();
+            }
+        });
+
+        button.setMargin(new Insets(0, 15, 0, 15));
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -229,49 +265,32 @@ public class EmployeePanel extends JPanel {
         g2d.fillRect(0, 0, getWidth(), getHeight());
     }
 
-    public JTextField getSearchField() {
-    return searchField;
-}
-
-    // Simple Employee model
     private static class Employee {
-        private final String id;
-        private final String name;
-        private final String birthday;
+        private final String id, lastName, firstName, birthday, sss, philHealth, tin, pagibig;
 
-        public Employee(String id, String name, String birthday) {
+        public Employee(String id, String lastName, String firstName, String birthday,
+                        String sss, String philHealth, String tin, String pagibig) {
             this.id = id;
-            this.name = name;
+            this.lastName = lastName;
+            this.firstName = firstName;
             this.birthday = birthday;
+            this.sss = sss;
+            this.philHealth = philHealth;
+            this.tin = tin;
+            this.pagibig = pagibig;
         }
 
-        public String getId() {
-            return id;
-        }
+        public String getId() { return id; }
+        public String getLastName() { return lastName; }
+        public String getFirstName() { return firstName; }
+        public String getBirthday() { return birthday; }
+        public String getSss() { return sss; }
+        public String getPhilHealth() { return philHealth; }
+        public String getTin() { return tin; }
+        public String getPagibig() { return pagibig; }
 
-        public String getName() {
-            return name;
-        }
-
-        public String getBirthday() {
-            return birthday;
+        public String getFullName() {
+            return firstName + " " + lastName;
         }
     }
-
-//    for testing
-//    public static void main(String[] args) {
-//    SwingUtilities.invokeLater(() -> {
-//        JFrame frame = new JFrame("Employee Panel Test");
-//        EmployeePanel employeePanel = new EmployeePanel();
-//        
-//        // Call test here: display employee by ID
-//        employeePanel.displayEmployeeById(""); // You can change this to "10001", "10003", or invalid ID
-//
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        frame.setSize(500, 300);
-//        frame.setLocationRelativeTo(null); // Center on screen
-//        frame.setContentPane(employeePanel);
-//        frame.setVisible(true);
-//    });
-
 }
