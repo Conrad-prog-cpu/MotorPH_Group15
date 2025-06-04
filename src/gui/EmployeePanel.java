@@ -32,10 +32,7 @@ public class EmployeePanel extends JPanel {
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightPanel.setOpaque(false);
 
-        JButton viewButton = new JButton("View Employee");
-        styleMinimalButton(viewButton, 120, 36);
-        viewButton.addActionListener(e -> showSelectedEmployeeDetails());
-        rightPanel.add(viewButton);
+        // Removed View Employee Button
 
         JButton addButton = new JButton("Add Employee");
         styleMinimalButton(addButton, 120, 36);
@@ -80,6 +77,7 @@ public class EmployeePanel extends JPanel {
         dashboardTable.filterTable(query);
     }
 
+    // Method retained in case needed elsewhere
     private void showSelectedEmployeeDetails() {
         String[] selected = dashboardTable.getSelectedEmployee();
         if (selected == null) {
