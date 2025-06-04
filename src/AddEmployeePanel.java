@@ -77,11 +77,14 @@ public class AddEmployeePanel extends JPanel {
             newRow[index++] = value;
         }
 
-        data.add(newRow);
-        fileHandler.writeEmployeeFile(data);
+        if (fileHandler.appendEmployeeToFile(newRow)) {
+            fileHandler.readEmployeeFile(); // refresh in-memory list
+            JOptionPane.showMessageDialog(this, "✅ Employee added successfully!");
+            clearFields();
+        } else {
+            JOptionPane.showMessageDialog(this, "❌ Failed to add employee.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
-        JOptionPane.showMessageDialog(this, "✅ Employee added successfully!");
-        clearFields();
     }
 
     private boolean employeeNumberExists(String empNum) {
