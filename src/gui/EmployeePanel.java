@@ -1,30 +1,26 @@
 package gui;
 
+import gui.DashboardTable;
+import model.FileHandler;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class EmployeePanel extends JPanel {
 
     private final Color gradientStart = new Color(255, 204, 229);
     private final Color gradientEnd = new Color(255, 229, 180);
 
-    private final DefaultTableModel tableModel;
-    private final JTable employeeTable;
-    private final Map<String, Employee> employeeMap = new LinkedHashMap<>();
-
     private final JTextField searchField = new JTextField(20);
+    private final DashboardTable dashboardTable;
 
     public EmployeePanel() {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        setupSampleData();
-
+        // Top Panel: Search and Action Buttons
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
         topPanel.setBorder(new EmptyBorder(20, 50, 0, 50));
@@ -48,17 +44,12 @@ public class EmployeePanel extends JPanel {
 
         topPanel.add(leftPanel, BorderLayout.WEST);
         topPanel.add(rightPanel, BorderLayout.EAST);
-
-        String[] columns = {"Employee No.", "Last Name", "First Name", "Birthday", "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."};
-        tableModel = new DefaultTableModel(columns, 0);
-        employeeTable = new JTable(tableModel);
-        loadEmployeesToTable();
-
-        JScrollPane scrollPane = new JScrollPane(employeeTable);
-        scrollPane.setBorder(new EmptyBorder(20, 50, 10, 50));
-
         add(topPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+
+        // Modern Table
+        dashboardTable = new DashboardTable(new FileHandler());
+        dashboardTable.setBorder(new EmptyBorder(20, 50, 10, 50));
+        add(dashboardTable, BorderLayout.CENTER);
     }
 
     private JPanel buildSearchPanel() {
@@ -81,53 +72,55 @@ public class EmployeePanel extends JPanel {
 
         panel.add(searchField);
         panel.add(searchButton);
-
         return panel;
     }
 
     private void performSearch(ActionEvent e) {
         String query = searchField.getText().trim().toLowerCase();
-        tableModel.setRowCount(0);
+        dashboardTable.filterTable(query);
+    }
 
-        if (query.isEmpty()) {
-            loadEmployeesToTable();
+    private void showSelectedEmployeeDetails() {
+        String[] selected = dashboardTable.getSelectedEmployee();
+        if (selected == null) {
+            JOptionPane.showMessageDialog(this, "Please select an employee first.");
             return;
         }
 
-        for (Employee emp : employeeMap.values()) {
-            if (emp.getId().toLowerCase().contains(query) ||
-                emp.getLastName().toLowerCase().contains(query) ||
-                emp.getFirstName().toLowerCase().contains(query)) {
-                addEmployeeToTable(emp);
-            }
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Employee Details", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setLayout(new GridLayout(0, 2, 10, 10));
+        dialog.setSize(500, 600);
+
+        String[] labels = {
+            "Employee No.", "Last Name", "First Name", "Birthday",
+            "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."
+        };
+
+        for (int i = 0; i < labels.length; i++) {
+            dialog.add(new JLabel(labels[i]));
+            dialog.add(new JLabel(selected[i] != null && !selected[i].isEmpty() ? selected[i] : "[Not Provided]"));
         }
+
+        JButton closeButton = new JButton("Close");
+        styleMinimalButton(closeButton, 80, 30);
+        closeButton.addActionListener(ev -> dialog.dispose());
+        dialog.add(new JLabel()); // filler
+        dialog.add(closeButton);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
-    private void setupSampleData() {
-        employeeMap.put("10001", new Employee("10001", "Garcia", "Manuel III", "10/11/1983", "SSS001", "PH001", "TIN001", "PAG001"));
-        employeeMap.put("10002", new Employee("10002", "Lim", "Antonio", "06/19/1988", "SSS002", "PH002", "TIN002", "PAG002"));
-        employeeMap.put("10003", new Employee("10003", "Aquino", "Bianca Sofia", "08/04/1989", "SSS003", "PH003", "TIN003", "PAG003"));
-    }
-
-    private void loadEmployeesToTable() {
-        tableModel.setRowCount(0);
-        for (Employee emp : employeeMap.values()) {
-            addEmployeeToTable(emp);
-        }
-    }
-
-    private void addEmployeeToTable(Employee emp) {
-        tableModel.addRow(new Object[]{
-                emp.getId(), emp.getLastName(), emp.getFirstName(), emp.getBirthday(),
-                emp.getSss(), emp.getPhilHealth(), emp.getTin(), emp.getPagibig()
-        });
-    }
-//ghab start part
     private void showAddEmployeeDialog() {
         JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Add New Employee", Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setLayout(new GridLayout(9, 2, 20, 15));
 
-        String[] labels = {"Employee No.", "Last Name", "First Name", "Birthday", "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."};
+        String[] labels = {
+            "Employee No.", "Last Name", "First Name", "Birthday",
+            "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."
+        };
+
         JTextField[] fields = new JTextField[labels.length];
 
         for (int i = 0; i < labels.length; i++) {
@@ -152,21 +145,17 @@ public class EmployeePanel extends JPanel {
                 }
             }
 
-            String empId = fields[0].getText().trim();
-            if (employeeMap.containsKey(empId)) {
-                JOptionPane.showMessageDialog(dialog, "Employee ID already exists.", "Duplicate Error", JOptionPane.WARNING_MESSAGE);
-                return;
+            String[] newEmployee = new String[fields.length];
+            for (int i = 0; i < fields.length; i++) {
+                newEmployee[i] = fields[i].getText().trim();
             }
 
-            Employee emp = new Employee(
-                    fields[0].getText().trim(), fields[1].getText().trim(), fields[2].getText().trim(), fields[3].getText().trim(),
-                    fields[4].getText().trim(), fields[5].getText().trim(), fields[6].getText().trim(), fields[7].getText().trim()
-            );
-
-            employeeMap.put(emp.getId(), emp);
-            addEmployeeToTable(emp);
-            JOptionPane.showMessageDialog(dialog, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            dialog.dispose();
+            if (dashboardTable.addEmployee(newEmployee)) {
+                JOptionPane.showMessageDialog(dialog, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Employee ID already exists.", "Duplicate Error", JOptionPane.WARNING_MESSAGE);
+            }
         });
 
         cancelButton.addActionListener(e -> dialog.dispose());
@@ -175,59 +164,6 @@ public class EmployeePanel extends JPanel {
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
-// ghab end part
-    private void showSelectedEmployeeDetails() {
-    int selectedRow = employeeTable.getSelectedRow();
-    if (selectedRow >= 0) {
-        String empId = (String) tableModel.getValueAt(selectedRow, 0);
-        Employee emp = employeeMap.get(empId);
-
-        if (emp != null) {
-            JDialog detailsDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Employee Details", Dialog.ModalityType.APPLICATION_MODAL);
-            detailsDialog.setLayout(new GridLayout(0, 2, 10, 10));
-            detailsDialog.setSize(500, 600);
-
-            detailsDialog.add(new JLabel("Employee No:"));          detailsDialog.add(new JLabel(p(emp.getId())));
-            detailsDialog.add(new JLabel("Last Name:"));            detailsDialog.add(new JLabel(p(emp.getLastName())));
-            detailsDialog.add(new JLabel("First Name:"));           detailsDialog.add(new JLabel(p(emp.getFirstName())));
-            detailsDialog.add(new JLabel("Birthday:"));             detailsDialog.add(new JLabel(p(emp.getBirthday())));
-            detailsDialog.add(new JLabel("Address:"));              detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Phone Number:"));         detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("SSS No:"));               detailsDialog.add(new JLabel(p(emp.getSss())));
-            detailsDialog.add(new JLabel("PhilHealth No:"));        detailsDialog.add(new JLabel(p(emp.getPhilHealth())));
-            detailsDialog.add(new JLabel("TIN No:"));               detailsDialog.add(new JLabel(p(emp.getTin())));
-            detailsDialog.add(new JLabel("Pag-IBIG No:"));          detailsDialog.add(new JLabel(p(emp.getPagibig())));
-            detailsDialog.add(new JLabel("Status:"));               detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Position:"));             detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Immediate Supervisor:"));detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Basic Salary:"));         detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Rice Subsidy:"));         detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Phone Allowance:"));      detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Clothing Allowance:"));   detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Gross Semi-monthly Rate:"));detailsDialog.add(new JLabel("[Not Provided]"));
-            detailsDialog.add(new JLabel("Hourly Rate:"));          detailsDialog.add(new JLabel("[Not Provided]"));
-
-            JButton closeButton = new JButton("Close");
-            styleMinimalButton(closeButton, 80, 30);
-            closeButton.addActionListener(e -> detailsDialog.dispose());
-
-            detailsDialog.add(new JLabel("")); // filler
-            detailsDialog.add(closeButton);
-
-            detailsDialog.pack();
-            detailsDialog.setLocationRelativeTo(this);
-            detailsDialog.setVisible(true);
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Please select an employee first.");
-        }
-    }
-
-    private String p(String val) {
-        return (val == null || val.trim().isEmpty()) ? "[Not Provided]" : val;
-    }
-
-
 
     private void styleMinimalButton(JButton button, int width, int height) {
         button.setFocusPainted(false);
@@ -285,30 +221,5 @@ public class EmployeePanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setPaint(new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd));
         g2d.fillRect(0, 0, getWidth(), getHeight());
-    }
-
-    private static class Employee {
-        private final String id, lastName, firstName, birthday, sss, philHealth, tin, pagibig;
-
-        public Employee(String id, String lastName, String firstName, String birthday,
-                        String sss, String philHealth, String tin, String pagibig) {
-            this.id = id;
-            this.lastName = lastName;
-            this.firstName = firstName;
-            this.birthday = birthday;
-            this.sss = sss;
-            this.philHealth = philHealth;
-            this.tin = tin;
-            this.pagibig = pagibig;
-        }
-
-        public String getId() { return id; }
-        public String getLastName() { return lastName; }
-        public String getFirstName() { return firstName; }
-        public String getBirthday() { return birthday; }
-        public String getSss() { return sss; }
-        public String getPhilHealth() { return philHealth; }
-        public String getTin() { return tin; }
-        public String getPagibig() { return pagibig; }
     }
 }
