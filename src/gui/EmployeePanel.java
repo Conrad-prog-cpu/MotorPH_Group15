@@ -2,7 +2,6 @@ package gui;
 
 import gui.DashboardTable;
 import model.FileHandler;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -110,57 +109,79 @@ public class EmployeePanel extends JPanel {
         dialog.setVisible(true);
     }
 
-    private void showAddEmployeeDialog() {
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Add New Employee", Dialog.ModalityType.APPLICATION_MODAL);
-        dialog.setLayout(new GridLayout(9, 2, 20, 15));
+    private void showAddEmployeeDialog(){
+//        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Add New Employee", Dialog.ModalityType.APPLICATION_MODAL);
+//        dialog.setLayout(new GridLayout(9, 2, 20, 15));
+//
+//        String[] labels = {
+//            "Employee No.", "Last Name", "First Name", "Birthday",
+//            "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."
+//        };
+//
+//        JTextField[] fields = new JTextField[labels.length];
+//
+//        for (int i = 0; i < labels.length; i++) {
+//            dialog.add(new JLabel(labels[i]));
+//            fields[i] = new JTextField();
+//            dialog.add(fields[i]);
+//        }
+//
+//        JButton saveButton = new JButton("Save");
+//        JButton cancelButton = new JButton("Cancel");
+//        styleMinimalButton(saveButton, 100, 30);
+//        styleMinimalButton(cancelButton, 100, 30);
+//
+//        dialog.add(saveButton);
+//        dialog.add(cancelButton);
+//
+//        saveButton.addActionListener(e -> {
+//            for (JTextField field : fields) {
+//                if (field.getText().trim().isEmpty()) {
+//                    JOptionPane.showMessageDialog(dialog, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+//                    return;
+//                }
+//            }
+//
+//            String[] newEmployee = new String[fields.length];
+//            for (int i = 0; i < fields.length; i++) {
+//                newEmployee[i] = fields[i].getText().trim();
+//            }
+//
+//            if (dashboardTable.addEmployee(newEmployee)) {
+//                JOptionPane.showMessageDialog(dialog, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+//                dialog.dispose();
+//            } else {
+//                JOptionPane.showMessageDialog(dialog, "Employee ID already exists.", "Duplicate Error", JOptionPane.WARNING_MESSAGE);
+//            }
+//        });
+//
+//        cancelButton.addActionListener(e -> dialog.dispose());
+//
+//        dialog.pack();
+//        dialog.setLocationRelativeTo(this);
+//        dialog.setVisible(true); 
+      
+//           SwingUtilities.invokeLater(() -> {
+            FileHandler fileHandler = new FileHandler();
+            fileHandler.readEmployeeFile();
 
-        String[] labels = {
-            "Employee No.", "Last Name", "First Name", "Birthday",
-            "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."
-        };
+            JFrame frame = new JFrame("Add Employee Panel with Date Picker");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(550, 600);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+            frame.add(new AddEmployeePanel(fileHandler, ()-> {
+                
+            dashboardTable.refreshTable(fileHandler.getEmployeeData());
+             frame.setVisible(false);
+            
+            }));
+            
+            
+//  });
 
-        JTextField[] fields = new JTextField[labels.length];
 
-        for (int i = 0; i < labels.length; i++) {
-            dialog.add(new JLabel(labels[i]));
-            fields[i] = new JTextField();
-            dialog.add(fields[i]);
-        }
-
-        JButton saveButton = new JButton("Save");
-        JButton cancelButton = new JButton("Cancel");
-        styleMinimalButton(saveButton, 100, 30);
-        styleMinimalButton(cancelButton, 100, 30);
-
-        dialog.add(saveButton);
-        dialog.add(cancelButton);
-
-        saveButton.addActionListener(e -> {
-            for (JTextField field : fields) {
-                if (field.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(dialog, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-
-            String[] newEmployee = new String[fields.length];
-            for (int i = 0; i < fields.length; i++) {
-                newEmployee[i] = fields[i].getText().trim();
-            }
-
-            if (dashboardTable.addEmployee(newEmployee)) {
-                JOptionPane.showMessageDialog(dialog, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                dialog.dispose();
-            } else {
-                JOptionPane.showMessageDialog(dialog, "Employee ID already exists.", "Duplicate Error", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-
-        cancelButton.addActionListener(e -> dialog.dispose());
-
-        dialog.pack();
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
+       
     }
 
     private void styleMinimalButton(JButton button, int width, int height) {

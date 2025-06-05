@@ -218,7 +218,7 @@ public class DashboardTable extends JPanel {
         refreshTable(filtered);
     }
 
-    private void refreshTable(List<String[]> rows) {
+    public void refreshTable(List<String[]> rows) {
         model.setRowCount(0);
         for (String[] row : rows) {
             if (row.length >= 10) {
