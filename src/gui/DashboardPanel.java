@@ -26,6 +26,8 @@ public class DashboardPanel extends JFrame {
     // Reusable panel to show employee information
     private final EmployeePanel employeePanel = new EmployeePanel();
 
+    
+    private boolean hasShownPayrollInstruction = false;
     // Constructor for the dashboard, accepts a user parameter
     public DashboardPanel(String user) {
         // Set the title of the window
@@ -147,8 +149,19 @@ public class DashboardPanel extends JFrame {
         
         
         });
-        payrollBtn.addActionListener(e -> cardLayout.show(contentPanel, "Payroll"));
-
+        payrollBtn.addActionListener(e -> {
+    if (!hasShownPayrollInstruction) {
+        JOptionPane.showMessageDialog(
+            null,
+            "To proceed, please choose an employee by clicking on a row in the table.",
+            "Instruction",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+        hasShownPayrollInstruction = true;
+    }
+    cardLayout.show(contentPanel, "Payroll");
+});
+        
         // Add sidebar and main content to frame
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);

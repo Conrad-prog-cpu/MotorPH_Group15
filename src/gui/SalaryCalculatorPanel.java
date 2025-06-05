@@ -1,153 +1,297 @@
-package gui; // Package declaration
+package gui;
 
-import javax.swing.*; // Swing GUI components
-import java.awt.*; // Layouts and colors
-import java.awt.event.ActionEvent; // Action event for buttons
-import java.awt.event.ActionListener; // Interface for event listener
-import model.Benefits; // Importing Benefits class from model package
+import model.*;
 
-// Panel class for calculating and displaying weekly salary with benefits and deductions
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import java.time.LocalTime;
+import java.time.Duration;
+
 public class SalaryCalculatorPanel extends JPanel {
 
-    // GUI components used for input and output
-    private JTextField txtHourlyRate, txtLateMinutes, txtBasicSalary;
-    private JComboBox<Integer> cbHoursWorked;
+    private JTable employeeTable;
     private JTextArea txtResult;
+    private FileHandler fileHandler;
+    private JButton btnCalculate;
+    private String selectedEmployeeID;
 
-    // Constructor initializes and lays out all GUI components
     public SalaryCalculatorPanel() {
-        setOpaque(true); // Makes panel non-transparent
-        setLayout(new BorderLayout()); // Uses BorderLayout for main panel
+        
+        fileHandler = new FileHandler();
+        fileHandler.readEmployeeFile();
+        fileHandler.readAttendanceFile();
 
-        JPanel inputPanel = new JPanel(new GridBagLayout()); // Input section with flexible layout
-        inputPanel.setOpaque(false); // Transparent background
-        inputPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding around input panel
-        GridBagConstraints gbc = new GridBagConstraints(); // Constraint object for GridBagLayout
-        gbc.insets = new Insets(8, 8, 8, 8); // Spacing between components
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Fill horizontally
+        setLayout(new BorderLayout());
+        setOpaque(true);
 
-        // Initialize input fields
-        txtHourlyRate = new JTextField(10);
-        cbHoursWorked = new JComboBox<>(new Integer[]{40, 42, 44, 45, 48}); // Preset hour options
-        txtLateMinutes = new JTextField(10);
-        txtBasicSalary = new JTextField(10);
-        txtResult = new JTextArea(10, 30); // Output area for results
-        txtResult.setEditable(false); // Make output area read-only
+        // Employee table setup
+        String[] columnNames = {"ID Number", "Last Name", "First Name", "Status", "Position"};
+        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
-        int y = 0; // Row counter for grid
-        // Add labeled inputs to the panel row by row
-        addToPanel(inputPanel, gbc, new JLabel("Hourly Rate:"), txtHourlyRate, y++);
-        addToPanel(inputPanel, gbc, new JLabel("Hours Worked:"), cbHoursWorked, y++);
-        addToPanel(inputPanel, gbc, new JLabel("Late Minutes:"), txtLateMinutes, y++);
-        addToPanel(inputPanel, gbc, new JLabel("Basic Salary (Monthly):"), txtBasicSalary, y++);
+        for (String[] emp : fileHandler.getEmployeeData()) {
+            tableModel.addRow(new Object[]{emp[0], emp[1], emp[2], emp[10], emp[11]});
+        }
 
-        // Add calculate button
-        JButton btnCalculate = new JButton("Calculate Salary");
-        gbc.gridx = 0;
-        gbc.gridy = y++;
-        gbc.gridwidth = 2; // Span 2 columns
-        inputPanel.add(btnCalculate, gbc); // Add button to panel
+        employeeTable = new JTable(tableModel);
+        employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scrollPane = new JScrollPane(employeeTable);
+        add(scrollPane, BorderLayout.CENTER);
 
-        add(inputPanel, BorderLayout.NORTH); // Add input panel to top
-        add(new JScrollPane(txtResult), BorderLayout.CENTER); // Scrollable output in center
+        // Bottom area for results
+        txtResult = new JTextArea(20, 50);
+        txtResult.setEditable(false);
+        add(new JScrollPane(txtResult), BorderLayout.SOUTH);
 
-        btnCalculate.addActionListener(new CalculateListener()); // Link action to button
-    }
+        // Side panel with Calculate button
+        JPanel sidePanel = new JPanel();
+        sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
+        btnCalculate = new JButton("Calculate Salary");
+        btnCalculate.setEnabled(false);
+        sidePanel.add(btnCalculate);
+        add(sidePanel, BorderLayout.EAST);
 
-    // Draw custom background with vertical gradient
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g); // Default painting
-        Graphics2D g2d = (Graphics2D) g; // Cast to 2D for advanced painting
-        Color gradientStart = new Color(255, 204, 229); // Light pink
-        Color gradientEnd = new Color(255, 229, 180); // Light peach
-        g2d.setPaint(new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd)); // Vertical gradient
-        g2d.fillRect(0, 0, getWidth(), getHeight()); // Fill panel with gradient
-    }
+        employeeTable.getSelectionModel().addListSelectionListener(e -> {
+            int selectedRow = employeeTable.getSelectedRow();
+            if (selectedRow != -1) {
+                selectedEmployeeID = employeeTable.getValueAt(selectedRow, 0).toString();
+                btnCalculate.setEnabled(true);
+            }
+        });
 
-    // Helper method to add label and input side-by-side to a panel
-    private void addToPanel(JPanel panel, GridBagConstraints gbc, JComponent label, JComponent field, int row) {
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.gridwidth = 1;
-        panel.add(label, gbc); // Add label to column 0
+        btnCalculate.addActionListener(e -> {
+            if (selectedEmployeeID == null) return;
 
-        gbc.gridx = 1;
-        panel.add(field, gbc); // Add input field to column 1
-        setOpaque(true); // Ensure opaque setting
-    }
+            // Extract available months from attendance
+            Set<String> months = new HashSet<>();
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+            for (String[] record : fileHandler.getAttendanceData()) {
+                if (record[0].equals(selectedEmployeeID)) {
+                    try {
+                        LocalDate date = LocalDate.parse(record[1], inputFormatter);
+                        months.add(date.getMonth().toString());
+                    } catch (DateTimeParseException ex) {
+                        System.err.println("Skipping invalid date: " + record[1]);
+                    }
+                }
+            }
 
-    // Inner class to handle salary calculation when button is clicked
-    private class CalculateListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
+            if (months.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No attendance records found for this employee.");
+                return;
+            }
+
+            // Show dialog to choose month
+            String month = (String) JOptionPane.showInputDialog(this, "Choose month:",
+                    "Select Month", JOptionPane.PLAIN_MESSAGE, null,
+                    months.toArray(String[]::new), null);
+
+            if (month == null) return;
+
+            // Filter attendance for chosen month
+            int totalWorkedMinutes = 0;
+            int totalLateMinutes = 0;
+            for (String[] record : fileHandler.getAttendanceData()) {
+                if (record[0].equals(selectedEmployeeID)) {
+                    try {
+                        LocalDate date = LocalDate.parse(record[1], inputFormatter);
+                        if (date.getMonth().toString().equals(month)) {
+                            int[] result = calculateWorkAndLateOffset(record[2], record[3]);
+                            totalWorkedMinutes += result[0];
+                            totalLateMinutes += result[1];
+                        }
+                    } catch (DateTimeParseException ex) {
+                        System.err.println("Skipping invalid date: " + record[1]);
+                    }
+                }
+            }
+
+            double totalHoursWorked = totalWorkedMinutes / 60.0;
+            
+            // Find employee details
+            String[] employee = fileHandler.getEmployeeData().stream()
+                    .filter(emp -> emp[0].equals(selectedEmployeeID))
+                    .findFirst().orElse(null);
+
+            if (employee == null) return;
+
             try {
-                // Get user inputs and convert to appropriate types
-                double hourlyRate = Double.parseDouble(txtHourlyRate.getText());
-                int hoursWorked = (int) cbHoursWorked.getSelectedItem();
-                int lateMinutes = Integer.parseInt(txtLateMinutes.getText());
-                double basicSalary = Double.parseDouble(txtBasicSalary.getText().replace(",", ""));
+                double hourlyRate = safeParseDouble(employee[18], 0.0);
+                double basicSalary = safeParseDouble(employee[13], 0.0);
+                
+                
+              Benefits benefits = fileHandler.getBenefitsByEmployeeId(selectedEmployeeID);
 
-                // Get static benefit values from Benefits class
-                double riceSubsidy = Benefits.getRiceSubsidy();
-                double phoneAllowance = Benefits.getPhoneAllowance();
-                double clothingAllowance = Benefits.getClothingAllowance();
+            double riceSubsidy = benefits.getRiceSubsidy();
+            double phoneAllowance = benefits.getPhoneAllowance();
+            double clothingAllowance = benefits.getClothingAllowance();
 
-                // Calculate gross weekly salary and late penalty
                 SalaryCalculator calculator = new SalaryCalculator();
-                double grossWeekly = calculator.calculateGrossWeeklySalary(hourlyRate, hoursWorked, riceSubsidy, phoneAllowance, clothingAllowance);
-                double latePenalty = calculator.calculateLateDeduction(hourlyRate, lateMinutes);
-                double adjustedGross = grossWeekly - latePenalty; // Gross minus late deduction
+                double grossWeekly = calculator.calculateGrossWeeklySalary(hourlyRate, totalHoursWorked, riceSubsidy, phoneAllowance, clothingAllowance);
+                double latePenalty = calculator.calculateLateDeduction(hourlyRate, totalLateMinutes);
+                double adjustedGross = grossWeekly - latePenalty;
 
-                // Calculate government deductions based on monthly salary
                 Deductions deductions = new Deductions();
                 double sss = deductions.calculateSSS(basicSalary);
                 double ph = deductions.calculatePhilHealth(basicSalary);
                 double pi = deductions.calculatePagIbig(basicSalary);
                 double tax = deductions.getMonthlyWithholdingTax(basicSalary);
 
-                // Divide monthly deductions by 4 to get weekly value
                 double weeklyDeductions = (sss + ph + pi + tax) / 4;
-                double netWeekly = adjustedGross - weeklyDeductions; // Final net salary
+                double netWeekly = adjustedGross - weeklyDeductions;
 
-                // Format and display result in text area
                 txtResult.setText(String.format("""
-                    ===== WEEKLY SALARY REPORT =====
+                        ===== WEEKLY SALARY REPORT =====
 
-                    ➤ BENEFITS:
-                    ▪ Rice Subsidy: \u20b1%,.2f
-                    ▪ Phone Allowance: \u20b1%,.2f
-                    ▪ Clothing Allowance: \u20b1%,.2f
-                    ▪ Total Benefits: \u20b1%,.2f
+                        ➤ BENEFITS:
+                        • Rice Subsidy: ₱%,.2f
+                        • Phone Allowance: ₱%,.2f
+                        • Clothing Allowance: ₱%,.2f
+                        • Total Benefits: ₱%,.2f
 
-                    ➤ WORK DETAILS:
-                    ▪ Hourly Rate: \u20b1%,.2f
-                    ▪ Hours Worked: %d
+                        ➤ WORK DETAILS:
+                        • Hourly Rate: ₱%,.2f
+                        • Total Hours Worked (Monthly): %.2f
+                        • Total Late Minutes (Monthly): %d
 
-                    ➤ SALARY:
-                    ▪ Gross Weekly Salary (with benefits): \u20b1%,.2f
-                    ▪ Late Deduction: \u20b1%,.2f
-                    ▪ Adjusted Gross Salary: \u20b1%,.2f
+                        ➤ SALARY:
+                        • Gross Weekly Salary (with benefits): ₱%,.2f
+                        • Late Deduction: ₱%,.2f
+                        • Adjusted Gross Salary: ₱%,.2f
 
-                    ➤ DEDUCTIONS (Monthly Basis):
-                    ▪ SSS: \u20b1%,.2f
-                    ▪ PhilHealth: \u20b1%,.2f
-                    ▪ Pag-IBIG: \u20b1%,.2f
-                    ▪ Withholding Tax: \u20b1%,.2f
-                    ▪ Weekly Deduction Total: \u20b1%,.2f
+                        ➤ DEDUCTIONS (Monthly Basis):
+                        • SSS: ₱%,.2f
+                        • PhilHealth: ₱%,.2f
+                        • Pag-IBIG: ₱%,.2f
+                        • Withholding Tax: ₱%,.2f
+                        • Weekly Deduction Total: ₱%,.2f
 
-                    ✅ Net Weekly Salary: \u20b1%,.2f
-                """,
+                        ✅ Net Weekly Salary: ₱%,.2f
+                    """,
                         riceSubsidy, phoneAllowance, clothingAllowance, (riceSubsidy + phoneAllowance + clothingAllowance),
-                        hourlyRate, hoursWorked,
+                        hourlyRate, totalHoursWorked, totalLateMinutes,
                         grossWeekly, latePenalty, adjustedGross,
                         sss, ph, pi, tax, weeklyDeductions, netWeekly
                 ));
 
-            } catch (NumberFormatException ex) {
-                // If inputs are invalid, show error message
-                JOptionPane.showMessageDialog(null, "Please enter valid numbers in all fields.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error calculating salary: " + ex.getMessage());
             }
-        }
+        });
+    }
+
+//    private int parseTimeToMinutes(String time) {
+//        try {
+//            String[] parts = time.split(":");
+//            int hours = Integer.parseInt(parts[0]);
+//            int minutes = Integer.parseInt(parts[1]);
+//            return hours * 60 + minutes;
+//        } catch (NumberFormatException e) {
+//            System.err.println("Invalid time format: " + time);
+//            return 0;
+//        }
+//    }
+//
+//private int calculateLateMinutes(String timeIn) {
+//    try {
+//        timeIn = timeIn.replace("\"", "").trim();
+//
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+//        LocalTime in = LocalTime.parse(timeIn, formatter);
+//        LocalTime graceLimit = LocalTime.of(8, 15); // 8:15 AM is cutoff
+//
+//        if (in.isAfter(graceLimit)) {
+//            return (int) java.time.Duration.between(graceLimit, in).toMinutes();
+//        } else {
+//            return 0;
+//        }
+//    } catch (Exception e) {
+//        System.err.println("Invalid time format (Late): " + timeIn);
+//        return 0;
+//    }
+//}
+
+    
+    
+    private double safeParseDouble(String value, double defaultValue) {
+    try {
+        return Double.parseDouble(value.replace("\"", "").trim().replace(",", ""));
+    } catch (NumberFormatException e) {
+        System.err.println("Failed to parse double: " + value);
+        return defaultValue;
+    }
+}
+    
+    private String debugSanitize(String input) {
+    return input.replaceAll("[^\\x20-\\x7E]", "").replace("\"", "").trim();
+}
+private int[] calculateWorkAndLateOffset(String timeInStr, String timeOutStr) {
+    timeInStr = debugSanitize(timeInStr);
+    timeOutStr = debugSanitize(timeOutStr);
+
+    List<DateTimeFormatter> formatters = List.of(
+        DateTimeFormatter.ofPattern("H:mm"),
+        DateTimeFormatter.ofPattern("HH:mm"),
+        DateTimeFormatter.ofPattern("H:mm:ss"),
+        DateTimeFormatter.ofPattern("HH:mm:ss")
+    );
+
+    try {
+        LocalTime timeIn = tryParseTime(timeInStr, formatters);
+        LocalTime timeOut = tryParseTime(timeOutStr, formatters);
+
+        LocalTime workStart = LocalTime.of(8, 0);
+        LocalTime graceTime = LocalTime.of(8, 15);
+        LocalTime workEnd = LocalTime.of(17, 0);
+
+         int totalWorked = (int) Duration.between(timeIn, timeOut).toMinutes();
+        int netWorked = totalWorked - 60; // less 1 hour break
+
+         int late = timeIn.isAfter(graceTime) 
+                ? (int) Duration.between(graceTime, timeIn).toMinutes()
+                : 0;
+
+        int overtime = timeOut.isAfter(workEnd)
+                ? (int) Duration.between(workEnd, timeOut).toMinutes()
+                : 0;
+
+        int offsetLate = Math.max(late - overtime, 0);
+        int actualOvertimeEarned = Math.max(overtime - late, 0);
+
+        return new int[]{netWorked, offsetLate, actualOvertimeEarned};
+
+    } catch (Exception e) {
+        System.err.println("Invalid time format (Work/Late/OT): [" + timeInStr + "] - [" + timeOutStr + "]");
+        return new int[]{0, 0, 0};
+    }
+}
+
+
+private LocalTime tryParseTime(String timeStr, List<DateTimeFormatter> formatters) {
+    for (DateTimeFormatter formatter : formatters) {
+        try {
+            return LocalTime.parse(timeStr, formatter);
+        } catch (Exception ignored) {}
+    }
+    throw new IllegalArgumentException("Time format not supported: " + timeStr);
+}
+
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        Color gradientStart = new Color(255, 204, 229);
+        Color gradientEnd = new Color(255, 229, 180);
+        g2d.setPaint(new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd));
+        g2d.fillRect(0, 0, getWidth(), getHeight());
     }
 }

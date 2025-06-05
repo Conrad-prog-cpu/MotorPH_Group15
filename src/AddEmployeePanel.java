@@ -109,17 +109,17 @@ public class AddEmployeePanel extends JPanel {
     }
 
     // ✅ Main method for testing
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            FileHandler fileHandler = new FileHandler();
-            fileHandler.readEmployeeFile();
-
-            JFrame frame = new JFrame("Add Employee Panel (Dynamic)");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(500, 600);
-            frame.setLocationRelativeTo(null);
-            frame.add(new AddEmployeePanel(fileHandler));
-            frame.setVisible(true);
-        });
-    }
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> {
+//            FileHandler fileHandler = new FileHandler();
+//            fileHandler.readEmployeeFile();
+//
+//            JFrame frame = new JFrame("Add Employee Panel (Dynamic)");
+//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//            frame.setSize(500, 600);
+//            frame.setLocationRelativeTo(null);
+//            frame.add(new AddEmployeePanel(fileHandler));
+//            frame.setVisible(true);
+//        });
+//    }
 }
