@@ -41,23 +41,61 @@ public class SalaryCalculatorPanel extends JPanel {
             tableModel.addRow(new Object[]{emp[0], emp[1], emp[2], emp[10], emp[11]});
         }
 
+        // Employee table with margin
         employeeTable = new JTable(tableModel);
         employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane scrollPane = new JScrollPane(employeeTable);
-        add(scrollPane, BorderLayout.CENTER);
+        employeeTable.setShowGrid(false);
+        employeeTable.setIntercellSpacing(new Dimension(0, 0));
+        employeeTable.setOpaque(false);
 
-        // Bottom area for results
+        JScrollPane scrollPane = new JScrollPane(employeeTable);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+
+        // Wrap with a margin panel
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setOpaque(false);
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // top, left, bottom, right
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.CENTER);
+
+        // Bottom area for results with margin
         txtResult = new JTextArea(20, 50);
         txtResult.setEditable(false);
-        add(new JScrollPane(txtResult), BorderLayout.SOUTH);
+        txtResult.setOpaque(false);
+        txtResult.setBorder(null);
 
-        // Side panel with Calculate button
+        JScrollPane resultScroll = new JScrollPane(txtResult);
+        resultScroll.setOpaque(false);
+        resultScroll.getViewport().setOpaque(false);
+
+        JPanel resultPanel = new JPanel(new BorderLayout());
+        resultPanel.setOpaque(false);
+        resultPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        resultPanel.add(resultScroll, BorderLayout.CENTER);
+        add(resultPanel, BorderLayout.SOUTH);
+
+        // Side panel with margin and transparent button
         JPanel sidePanel = new JPanel();
         sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
+        sidePanel.setOpaque(false);
+        sidePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         btnCalculate = new JButton("Calculate Salary");
         btnCalculate.setEnabled(false);
+        btnCalculate.setFocusPainted(false);
+        btnCalculate.setBorderPainted(false);
+        btnCalculate.setBackground(new Color(255, 255, 255, 100));
+        btnCalculate.setAlignmentY(TOP_ALIGNMENT);
+        btnCalculate.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        sidePanel.add(Box.createVerticalGlue());  // Optional: aligns button to top
         sidePanel.add(btnCalculate);
+        sidePanel.add(Box.createVerticalGlue());  // Optional: centers the button vertically
+
         add(sidePanel, BorderLayout.EAST);
+        
+
 
         employeeTable.getSelectionModel().addListSelectionListener(e -> {
             int selectedRow = employeeTable.getSelectedRow();

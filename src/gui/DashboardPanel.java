@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 // For loading image resources
 import java.net.URL;
+import model.FileHandler;
 // For storing employee data in key-value format
 
 // Main class for the dashboard screen, inherits JFrame for window functionality
@@ -136,7 +137,8 @@ public class DashboardPanel extends JFrame {
         };
 
         // Add panels to content area
-        AttendancePanel attendancePanel = new AttendancePanel();
+        FileHandler fileHandler = new FileHandler(); // or reuse existing instance
+AttendancePanel attendancePanel = new AttendancePanel(fileHandler);
         contentPanel.add(attendancePanel, "Attendance");
         contentPanel.add(employeePanel, "Employee");
         contentPanel.add(new SalaryCalculatorPanel(), "Payroll");

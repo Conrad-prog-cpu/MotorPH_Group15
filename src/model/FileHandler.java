@@ -90,50 +90,39 @@ public class FileHandler {
 
 
 
-    public void readAttendanceFile() {
-        String filePath = folderPath + "/attendance.txt";
+   public void readAttendanceFile() {
+    String filePath = folderPath + "/attendance.txt";
 
-        try {
-            File file = new File(filePath);
-            if (!file.exists()) {
-                System.out.println("attendance.txt file not found.");
-                return;
-            }
-
-            try (CSVReader reader = new CSVReaderBuilder(new FileReader(file))
-                    .withCSVParser(new CSVParserBuilder().withSeparator(',').build())
-                    .build()) {
-
-                String[] header = reader.readNext();
-                if (header == null) {
-                    System.out.println("attendance.txt is empty or missing headers.");
-                    return;
-                }
-
-                attendanceHeaders.clear();
-                attendanceData.clear();
-
-                attendanceHeaders.addAll(Arrays.asList(header));
-
-                String[] line;
-                while ((line = reader.readNext()) != null) {
-                    if (line.length != header.length) {
-                        System.out.println("Skipping malformed row in attendance.txt");
-                        continue;
-                    }
-                    attendanceData.add(line);
-                }
-
-                System.out.println("Attendance data loaded successfully.");
-
-            } catch (CsvValidationException ex) {
-                System.err.println("CSV validation error: " + ex.getMessage());
-            }
-
-        } catch (IOException e) {
-            System.out.println("Error reading attendance.txt: " + e.getMessage());
+    try {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            System.out.println("attendance.txt file not found.");
+            return;
         }
+
+        try (CSVReader reader = new CSVReaderBuilder(new FileReader(file))
+                .withCSVParser(new CSVParserBuilder().withSeparator(',').build())
+                .build()) {
+
+            attendanceHeaders.clear(); // you won’t need this anymore
+            attendanceData.clear();
+
+            String[] line;
+            while ((line = reader.readNext()) != null) {
+                if (line.length == 0 || line[0].trim().isEmpty()) continue;
+                attendanceData.add(line);
+            }
+
+            System.out.println("✅ Attendance data loaded: " + attendanceData.size() + " rows");
+
+        } catch (CsvValidationException ex) {
+            System.err.println("CSV validation error: " + ex.getMessage());
+        }
+
+    } catch (IOException e) {
+        System.out.println("Error reading attendance.txt: " + e.getMessage());
     }
+}
 
     public void writeEmployeeFile(List<String[]> data) {
         String filePath = folderPath + "/employee.txt";

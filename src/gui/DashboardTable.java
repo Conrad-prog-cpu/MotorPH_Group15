@@ -266,14 +266,14 @@ public class DashboardTable extends JPanel {
         JOptionPane.showMessageDialog(this, scrollPane, "Employee Full Details", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            FileHandler handler = new FileHandler(); // Replace with your actual handler
-            JFrame frame = new JFrame("Dashboard Table");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(800, 400);
-            frame.add(new DashboardTable(handler));
-            frame.setVisible(true);
-        });
-    }
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> {
+//            FileHandler handler = new FileHandler(); // Replace with your actual handler
+//            JFrame frame = new JFrame("Dashboard Table");
+//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//            frame.setSize(800, 400);
+//            frame.add(new DashboardTable(handler));
+//            frame.setVisible(true);
+//        });
+//    }
 }
