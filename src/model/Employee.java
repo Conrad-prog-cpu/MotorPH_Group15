@@ -1,4 +1,4 @@
-public class Employee {
+    public class Employee {
     private String employeeID;
     private String name;
     private double basicSalary;

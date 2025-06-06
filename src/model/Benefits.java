@@ -1,17 +1,23 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
-/**
- *
- * @author santos.conrad
- */
 public class Benefits {
-    public static double getRiceSubsidy() { return 1500.00; }
-    public static double getPhoneAllowance() { return 1000.00; }
-    public static double getClothingAllowance() { return 1000.00; }
+    private double riceSubsidy;
+    private double phoneAllowance;
+    private double clothingAllowance;
 
-   
+    public Benefits(double riceSubsidy, double phoneAllowance, double clothingAllowance) {
+        this.riceSubsidy = riceSubsidy;
+        this.phoneAllowance = phoneAllowance;
+        this.clothingAllowance = clothingAllowance;
+    }
+
+    // Getters
+    public double getRiceSubsidy() { return riceSubsidy; }
+    public double getPhoneAllowance() { return phoneAllowance; }
+    public double getClothingAllowance() { return clothingAllowance; }
+
+    // Setters (if you want to update benefits)
+    public void setRiceSubsidy(double riceSubsidy) { this.riceSubsidy = riceSubsidy; }
+    public void setPhoneAllowance(double phoneAllowance) { this.phoneAllowance = phoneAllowance; }
+    public void setClothingAllowance(double clothingAllowance) { this.clothingAllowance = clothingAllowance; }
 }

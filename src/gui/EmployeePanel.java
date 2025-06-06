@@ -173,7 +173,7 @@ public class EmployeePanel extends JPanel {
             frame.add(new AddEmployeePanel(fileHandler, ()-> {
                 
             dashboardTable.refreshTable(fileHandler.getEmployeeData());
-             frame.setVisible(false);
+            frame.setVisible(false);
             
             }));
             

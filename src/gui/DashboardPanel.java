@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 // For loading image resources
 import java.net.URL;
+import model.FileHandler;
 // For storing employee data in key-value format
 
 // Main class for the dashboard screen, inherits JFrame for window functionality
@@ -26,6 +27,8 @@ public class DashboardPanel extends JFrame {
     // Reusable panel to show employee information
     private final EmployeePanel employeePanel = new EmployeePanel();
 
+    
+    private boolean hasShownPayrollInstruction = false;
     // Constructor for the dashboard, accepts a user parameter
     public DashboardPanel(String user) {
         // Set the title of the window
@@ -134,7 +137,8 @@ public class DashboardPanel extends JFrame {
         };
 
         // Add panels to content area
-        AttendancePanel attendancePanel = new AttendancePanel();
+        FileHandler fileHandler = new FileHandler(); // or reuse existing instance
+AttendancePanel attendancePanel = new AttendancePanel(fileHandler);
         contentPanel.add(attendancePanel, "Attendance");
         contentPanel.add(employeePanel, "Employee");
         contentPanel.add(new SalaryCalculatorPanel(), "Payroll");
@@ -147,8 +151,19 @@ public class DashboardPanel extends JFrame {
         
         
         });
-        payrollBtn.addActionListener(e -> cardLayout.show(contentPanel, "Payroll"));
-
+        payrollBtn.addActionListener(e -> {
+    if (!hasShownPayrollInstruction) {
+        JOptionPane.showMessageDialog(
+            null,
+            "To proceed, please choose an employee by clicking on a row in the table.",
+            "Instruction",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+        hasShownPayrollInstruction = true;
+    }
+    cardLayout.show(contentPanel, "Payroll");
+});
+        
         // Add sidebar and main content to frame
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
