@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import java.time.LocalTime;
 import java.time.Duration;
 
+//author conrad
+
 public class SalaryCalculatorPanel extends JPanel {
 
     private JTable employeeTable;
