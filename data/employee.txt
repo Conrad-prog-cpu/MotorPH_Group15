@@ -35,5 +35,3 @@ Employee #;Last Name;First Name;Birthday;Address;Phone Number;SSS #;Philhealth #
 10034;Santos;Beatriz;08/07/1990;"Agapita Building, Metro Manila";526-639-511;20-2987501-5;918460050077;911-529-713-000;874042259378;Regular;Customer Service and Relations;Reyes, Isabella;52,670;1,500;1,000;1,000;26,335;313.51
 
 
-
-111111;sasasa;sasas;____/__/__;;1111;;;;;;;;;;;;;
