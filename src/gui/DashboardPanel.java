@@ -7,6 +7,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 // For layout and color controls
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 // For handling button clicks and events
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -27,7 +29,7 @@ public class DashboardPanel extends JFrame {
     // Reusable panel to show employee information
     private final EmployeePanel employeePanel = new EmployeePanel();
 
-    
+    SalaryCalculatorPanel salaryPanel = new SalaryCalculatorPanel();
     private boolean hasShownPayrollInstruction = false;
     // Constructor for the dashboard, accepts a user parameter
     public DashboardPanel(String user) {
@@ -103,7 +105,7 @@ public class DashboardPanel extends JFrame {
         JButton attendanceBtn = createNavButton("Attendance", "attendance.png");
         JButton employeeBtn = createNavButton("Employee", "employee.png");
         JButton payrollBtn = createNavButton("Payroll", "payroll.png");
-
+        
         // Add buttons to sidebar
         navPanel.add(attendanceBtn);
         navPanel.add(Box.createVerticalStrut(5));
@@ -142,7 +144,7 @@ AttendancePanel attendancePanel = new AttendancePanel(fileHandler);
         contentPanel.add(attendancePanel, "Attendance");
         contentPanel.add(employeePanel, "Employee");
         contentPanel.add(new SalaryCalculatorPanel(), "Payroll");
-
+         
         // Button logic for showing specific panels
         attendanceBtn.addActionListener(e -> cardLayout.show(contentPanel, "Attendance"));
         
@@ -151,18 +153,23 @@ AttendancePanel attendancePanel = new AttendancePanel(fileHandler);
         
         
         });
-        payrollBtn.addActionListener(e -> {
-    if (!hasShownPayrollInstruction) {
-        JOptionPane.showMessageDialog(
-            null,
-            "To proceed, please choose an employee by clicking on a row in the table.",
-            "Instruction",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-        hasShownPayrollInstruction = true;
-    }
-    cardLayout.show(contentPanel, "Payroll");
-});
+        payrollBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               
+                if (!hasShownPayrollInstruction) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "To proceed, please choose an employee by clicking on a row in the table.",
+                            "Instruction",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                    hasShownPayrollInstruction = true;
+                }
+                cardLayout.show(contentPanel, "Payroll");
+                
+            }
+        });
         
         // Add sidebar and main content to frame
         add(sidebar, BorderLayout.WEST);

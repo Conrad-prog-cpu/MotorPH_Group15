@@ -106,7 +106,9 @@ public class SalaryCalculatorPanel extends JPanel {
                 btnCalculate.setEnabled(true);
             }
         });
-
+           
+        
+        
         btnCalculate.addActionListener(e -> {
             if (selectedEmployeeID == null) return;
 
@@ -226,6 +228,9 @@ public class SalaryCalculatorPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Error calculating salary: " + ex.getMessage());
             }
         });
+        
+        
+        
     }
 
 //    private int parseTimeToMinutes(String time) {
@@ -311,6 +316,17 @@ private int[] calculateWorkAndLateOffset(String timeInStr, String timeOutStr) {
     } catch (Exception e) {
         System.err.println("Invalid time format (Work/Late/OT): [" + timeInStr + "] - [" + timeOutStr + "]");
         return new int[]{0, 0, 0};
+    }
+}
+// Add this method inside your SalaryCalculatorPanel class
+public void refreshTable() {
+    DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+    model.setRowCount(0); // Clear current rows
+
+    for (String[] emp : fileHandler.getEmployeeData()) {
+        model.addRow(new Object[]{emp[0], emp[1], emp[2], emp[10], emp[11]});
+        
+     refreshTable();
     }
 }
 
