@@ -166,7 +166,7 @@ public class EmployeePanel extends JPanel {
             fileHandler.readEmployeeFile();
 
             JFrame frame = new JFrame("Add Employee Panel with Date Picker");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setSize(550, 600);
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);

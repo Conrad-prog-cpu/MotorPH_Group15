@@ -13,9 +13,6 @@ import java.util.List;
 
 public class DashboardTable extends JPanel {
 
-    static void refreshTable() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
 
     private JTable table;
     private DefaultTableModel model;
@@ -222,7 +219,7 @@ public class DashboardTable extends JPanel {
         refreshTable(filtered);
     }
 
-    public void refreshTable(List<String[]> rows) {
+    public final void refreshTable(List<String[]> rows) {
         model.setRowCount(0);
         for (String[] row : rows) {
             if (row.length >= 10) {
