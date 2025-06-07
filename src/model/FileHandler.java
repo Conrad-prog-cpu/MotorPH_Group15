@@ -284,4 +284,61 @@ public class FileHandler { // Class declaration for handling file-related operat
     public List<String> getAttendanceHeaders() { // Getter for attendance headers
         return attendanceHeaders;
     }
+    private final String EMPLOYEE_FILE = "employee.txt";
+    public String[] updateEmployeeField(String employeeId) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(EMPLOYEE_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(";", -1); // -1 to include empty trailing fields
+                if (parts.length > 0 && parts[0].trim().equals(employeeId.trim())) {
+                    return parts;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null; // not found}
+    }
+    public void updateEmployeeField(String employeeId, String[] updatedData) {
+    File originalFile = new File(EMPLOYEE_FILE);
+    File tempFile = new File("employee_temp.txt");
+
+    boolean updated = false;
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(originalFile));
+         BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(";", -1); // FIXED: use semicolon
+
+            if (parts.length > 0 && parts[0].trim().equals(employeeId.trim())) {
+                // Write updated data
+                writer.write(String.join(";", updatedData));
+                writer.newLine();
+                updated = true;
+            } else {
+                // Write existing data
+                writer.write(line);
+                writer.newLine();
+            }
+        }
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+    // Replace original file if update was successful
+    if (updated) {
+        if (originalFile.delete()) {
+            tempFile.renameTo(originalFile);
+            System.out.println("✅ Employee with ID " + employeeId + " updated.");
+        } else {
+            System.err.println("❌ Could not delete original file.");
+        }
+    } else {
+        tempFile.delete(); // cleanup if no changes made
+        System.out.println("❌ Employee with ID " + employeeId + " not found.");
+    }
+}
 }
