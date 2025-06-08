@@ -108,7 +108,7 @@ public class AddEmployeePanel extends JPanel {
                header.equalsIgnoreCase("First Name");
     }
 
-    // ✅ Main method for testing
+// ✅ Main method for testing
 //    public static void main(String[] args) {
 //        SwingUtilities.invokeLater(() -> {
 //            FileHandler fileHandler = new FileHandler();
