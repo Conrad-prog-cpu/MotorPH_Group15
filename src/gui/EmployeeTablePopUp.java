@@ -18,9 +18,9 @@ public class EmployeeTablePopUp {
 
     private final JTable table;
     private final FileHandler fileHandler;
-    private final DashboardTable dashboardTable;
+    private final EmployeeTable dashboardTable;
 
-    public EmployeeTablePopUp(JTable table, FileHandler fileHandler, DashboardTable dashboardTable) {
+    public EmployeeTablePopUp(JTable table, FileHandler fileHandler, EmployeeTable dashboardTable) {
         this.table = table;
         this.fileHandler = fileHandler;
         this.dashboardTable = dashboardTable;

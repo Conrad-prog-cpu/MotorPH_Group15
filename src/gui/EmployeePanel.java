@@ -1,11 +1,12 @@
 package gui;
 
-import gui.DashboardTable;
+import gui.EmployeeTable;
 import model.FileHandler;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.Vector;
 
 public class EmployeePanel extends JPanel {
 
@@ -13,7 +14,7 @@ public class EmployeePanel extends JPanel {
     private final Color gradientEnd = new Color(255, 229, 180);
 
     private final JTextField searchField = new JTextField(20);
-    private final DashboardTable dashboardTable;
+    private final EmployeeTable dashboardTable;
 
     public EmployeePanel() {
         setLayout(new BorderLayout());
@@ -48,7 +49,7 @@ public class EmployeePanel extends JPanel {
         add(topPanel, BorderLayout.NORTH);
 
         // Modern Table
-        dashboardTable = new DashboardTable(new FileHandler());
+        dashboardTable = new EmployeeTable(new FileHandler());
         dashboardTable.setBorder(new EmptyBorder(20, 50, 10, 50));
         add(dashboardTable, BorderLayout.CENTER);
     }
@@ -82,36 +83,14 @@ public class EmployeePanel extends JPanel {
     }
 
     private void showSelectedEmployeeDetails() {
-        String[] selected = dashboardTable.getSelectedEmployee();
-        if (selected == null) {
-            JOptionPane.showMessageDialog(this, "Please select an employee first.");
-            return;
-        }
-
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Employee Details", Dialog.ModalityType.APPLICATION_MODAL);
-        dialog.setLayout(new GridLayout(0, 2, 10, 10));
-        dialog.setSize(500, 600);
-
-        String[] labels = {
-            "Employee No.", "Last Name", "First Name", "Birthday",
-            "SSS No.", "PhilHealth No.", "TIN No.", "Pag-IBIG No."
-        };
-
-        for (int i = 0; i < labels.length; i++) {
-            dialog.add(new JLabel(labels[i]));
-            dialog.add(new JLabel(selected[i] != null && !selected[i].isEmpty() ? selected[i] : "[Not Provided]"));
-        }
-
-        JButton closeButton = new JButton("Close");
-        styleMinimalButton(closeButton, 80, 30);
-        closeButton.addActionListener(ev -> dialog.dispose());
-        dialog.add(new JLabel()); // filler
-        dialog.add(closeButton);
-
-        dialog.pack();
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
+    Vector<Object> selected = dashboardTable.getSelectedEmployeeFullDetails();
+    if (selected == null || selected.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Please select an employee first.");
+        return;
     }
+
+    new ViewEmployeePanel(selected);
+}
 
     private void showAddEmployeeDialog() {
         FileHandler fileHandler = new FileHandler();

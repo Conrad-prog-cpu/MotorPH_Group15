@@ -10,9 +10,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
-public class DashboardTable extends JPanel {
-
+public class EmployeeTable extends JPanel {
 
     private JTable table;
     private DefaultTableModel model;
@@ -28,7 +28,7 @@ public class DashboardTable extends JPanel {
     private final Color gradientStart = new Color(255, 204, 229);
     private final Color gradientEnd = new Color(255, 229, 180);
 
-    public DashboardTable(FileHandler fileHandler) {
+    public EmployeeTable(FileHandler fileHandler) {
         this.fileHandler = fileHandler;
         setLayout(new BorderLayout());
 
@@ -67,43 +67,8 @@ public class DashboardTable extends JPanel {
 
         refreshTable(employeeData);
         new EmployeeTablePopUp(table, fileHandler, this);
-        // === Styled "View Employee" Button with Rounded Edges and Font Size 13 ===
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-        bottomPanel.setOpaque(false);
 
-        JButton showDetailsButton = new JButton("View Employee") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                super.paintComponent(g);
-                g2.dispose();
-            }
-
-            @Override
-            protected void paintBorder(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getForeground());
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
-                g2.dispose();
-            }
-        };
-
-        showDetailsButton.setPreferredSize(new Dimension(140, 36));
-        showDetailsButton.setFocusPainted(false);
-        showDetailsButton.setContentAreaFilled(false);
-        showDetailsButton.setOpaque(false);
-        showDetailsButton.setBackground(Color.BLACK);
-        showDetailsButton.setForeground(Color.WHITE);
-        showDetailsButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        showDetailsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        showDetailsButton.addActionListener(this::handleShowDetails);
-        bottomPanel.add(showDetailsButton);
-        add(bottomPanel, BorderLayout.SOUTH);
+        // View Employee button GUI is removed but logic remains
     }
 
     private static class JTableHeaderRenderer extends DefaultTableCellRenderer {
@@ -135,7 +100,7 @@ public class DashboardTable extends JPanel {
             String colName = table.getColumnName(column).toLowerCase();
             boolean isNumberField = colName.contains("sss") || colName.contains("phil")
                     || colName.contains("tin") || colName.contains("pag");
-            int width = DashboardTable.this.getWidth();
+            int width = EmployeeTable.this.getWidth();
             int fontSize = width < 600 ? 10 : (width < 800 ? 12 : 14);
             c.setFont(new Font("SansSerif", Font.PLAIN, isNumberField ? fontSize : 14));
             return c;
@@ -232,8 +197,10 @@ public class DashboardTable extends JPanel {
         }
     }
 
+    // === Logic for "View Employee" kept without GUI ===
+
     private void handleShowDetails(ActionEvent e) {
-        String[] selected = getSelectedEmployee();
+        Vector<Object> selected = getSelectedEmployeeFullDetails();
         if (selected == null) {
             JOptionPane.showMessageDialog(this, "Please select an employee first.",
                     "No Selection", JOptionPane.WARNING_MESSAGE);
@@ -242,39 +209,37 @@ public class DashboardTable extends JPanel {
         showDetailDialog(selected);
     }
 
-    public String[] getSelectedEmployee() {
+    public Vector<Object> getSelectedEmployeeFullDetails() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) return null;
 
-        String selectedEmployeeId = (String) table.getValueAt(selectedRow, 0);
-        for (String[] row : employeeData) {
-            if (row.length >= 10 && row[0].equals(selectedEmployeeId)) {
-                return row;
+        int modelRow = table.convertRowIndexToModel(selectedRow);
+        String employeeId = (String) table.getModel().getValueAt(modelRow, 0);
+
+        for (String[] employee : employeeData) {
+            if (employee.length > 0 && employee[0].equals(employeeId)) {
+                Vector<Object> fullData = new Vector<>();
+                for (String item : employee) {
+                    fullData.add(item);
+                }
+                return fullData;
             }
         }
+
         return null;
     }
 
-    private void showDetailDialog(String[] row) {
+
+
+    private void showDetailDialog(Vector<Object> row) {
         String[] headers = fileHandler.getEmployeeHeaders();
         JPanel detailPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        for (int i = 0; i < headers.length && i < row.length; i++) {
-            detailPanel.add(new JLabel(headers[i] + ": " + row[i]));
+        for (int i = 0; i < headers.length && i < row.size(); i++) {
+            detailPanel.add(new JLabel(headers[i] + ": " + row.get(i)));
         }
 
         JScrollPane scrollPane = new JScrollPane(detailPanel);
         scrollPane.setPreferredSize(new Dimension(400, 300));
         JOptionPane.showMessageDialog(this, scrollPane, "Employee Full Details", JOptionPane.INFORMATION_MESSAGE);
     }
-
-//    public static void main(String[] args) {
-//        SwingUtilities.invokeLater(() -> {
-//            FileHandler handler = new FileHandler(); // Replace with your actual handler
-//            JFrame frame = new JFrame("Dashboard Table");
-//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//            frame.setSize(800, 400);
-//            frame.add(new DashboardTable(handler));
-//            frame.setVisible(true);
-//        });
-//    }
 }
