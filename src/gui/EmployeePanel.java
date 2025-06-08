@@ -88,7 +88,7 @@ public class EmployeePanel extends JPanel {
         JOptionPane.showMessageDialog(this, "Please select an employee first.");
         return;
     }
-
+    
     new ViewEmployeePanel(selected);
 }
 

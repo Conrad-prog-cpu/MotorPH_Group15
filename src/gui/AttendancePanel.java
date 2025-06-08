@@ -4,6 +4,7 @@ import model.FileHandler;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -13,124 +14,193 @@ import java.util.List;
 
 public class AttendancePanel extends JPanel {
     private FileHandler fileHandler;
-    private JTable attendanceTable;
-    private DefaultTableModel tableModel;
+    private JTable table;
+    private DefaultTableModel model;
     private JTextField searchField;
     private List<String[]> allData;
+
     private final Color gradientStart = new Color(255, 204, 229);
     private final Color gradientEnd = new Color(255, 229, 180);
 
     public AttendancePanel(FileHandler fileHandler) {
         this.fileHandler = fileHandler;
-
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
         setBorder(new EmptyBorder(15, 15, 15, 15));
-        setBackground(Color.WHITE);
 
         fileHandler.readAttendanceFile();
-        List<String> headers = List.of("Employee #", "Date", "Log In", "Log Out");
         allData = fileHandler.getAttendanceData();
 
-        String[] columnNames = headers.toArray(String[]::new);
-        
-        tableModel = new DefaultTableModel(columnNames, 0);
-        
-        attendanceTable = new JTable(tableModel);
-        styleTable(attendanceTable);
+        String[] columnNames = {"Employee #", "Date", "Log In", "Log Out"};
+        model = new DefaultTableModel(columnNames, 0);
+        table = new JTable(model);
+        table.setRowHeight(25);
+        table.setFillsViewportHeight(true);
+        table.setOpaque(false);
+        table.setShowGrid(true);
+        table.setBorder(BorderFactory.createEmptyBorder());
+
+        // Centered cell renderer with striped rows
+        table.setDefaultRenderer(Object.class, new ResponsiveCellRenderer());
+
+        // Header styling
+        JTableHeader header = table.getTableHeader();
+        header.setDefaultRenderer(new JTableHeaderRenderer());
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        scrollPane.getVerticalScrollBar().setUI(new ModernScrollBarUI());
+        scrollPane.getHorizontalScrollBar().setUI(new ModernScrollBarUI());
+
+        add(createSearchPanel(), BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
 
         populateTable(allData);
+    }
 
-        JScrollPane scrollPane = new JScrollPane(attendanceTable);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
-
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    private JPanel createSearchPanel() {
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         searchPanel.setOpaque(false);
-        searchField = new JTextField(15);
-        JButton searchButton = new JButton("Search");
 
-        searchPanel.add(new JLabel("Employee ID:"));
+        searchField = new JTextField(15);
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        searchField.setPreferredSize(new Dimension(180, 30));
+        searchField.setBorder(BorderFactory.createLineBorder(new Color(180, 180, 180)));
+
+        JButton searchButton = new JButton("Search");
+        styleColoredButton(searchButton, new Color(30, 144, 255), 80, 36); // Uniform design
+        searchButton.addActionListener(e -> search());
+        searchField.addActionListener(e -> search());
+
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
 
-        add(searchPanel, BorderLayout.NORTH);
-        JPanel tableWrapper = new JPanel(new BorderLayout());
-        tableWrapper.setBorder(new EmptyBorder(10, 10, 10, 10));
-        tableWrapper.setBackground(Color.WHITE);
-        tableWrapper.add(scrollPane, BorderLayout.CENTER);
-
-        add(tableWrapper, BorderLayout.CENTER);
-
-        Runnable searchAction = () -> {
-            String input = searchField.getText().trim().toLowerCase();
-            if (input.isEmpty()) {
-                resetTableWithFocus("Please enter an Employee ID.");
-                return;
-            }
-
-            List<String[]> filtered = new ArrayList<>();
-            for (String[] row : allData) {
-                if (row[0].toLowerCase().contains(input)) {
-                    filtered.add(row);
-                }
-            }
-
-            if (filtered.isEmpty()) {
-                resetTableWithFocus("No records found for: " + searchField.getText());
-            } else {
-                populateTable(filtered);
-            }
-        };
-        
-        searchButton.addActionListener(e -> searchAction.run());
-        searchField.addActionListener(e -> searchAction.run());
+        return searchPanel;
     }
+
+    private void search() {
+        String input = searchField.getText().trim().toLowerCase();
+        if (input.isEmpty()) {
+            populateTable(allData);
+            JOptionPane.showMessageDialog(this, "Please enter an Employee ID.", "Search Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        List<String[]> filtered = new ArrayList<>();
+        for (String[] row : allData) {
+            if (row[0].toLowerCase().contains(input)) {
+                filtered.add(row);
+            }
+        }
+
+        if (filtered.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No records found for: " + input, "No Results", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        populateTable(filtered);
+    }
+    
+    private void styleColoredButton(JButton button, Color bgColor, int width, int height) {
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setOpaque(false);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setPreferredSize(new Dimension(width, height));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(bgColor);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g2, c);
+                g2.dispose();
+            }
+        });
+
+        button.setMargin(new Insets(0, 15, 0, 15));
+    }
+
 
     private void populateTable(List<String[]> data) {
-        tableModel.setRowCount(0);
+        model.setRowCount(0);
         for (String[] row : data) {
-            tableModel.addRow(row);
-            
+            model.addRow(row);
         }
     }
 
-    private void resetTableWithFocus(String message) {
-        populateTable(allData);
-        JOptionPane.showMessageDialog(this, message, "Search Error", JOptionPane.WARNING_MESSAGE);
-        searchField.requestFocusInWindow();
-        searchField.selectAll();
-    }
-
-    private void styleTable(JTable table) {
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.setRowHeight(22);
-        table.setGridColor(new Color(230, 230, 230));
-        table.setShowVerticalLines(false);
-        table.setFillsViewportHeight(true);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
-        table.setIntercellSpacing(new Dimension(8, 2));
-        table.setSelectionBackground(new Color(220, 235, 255));
-
-        JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
-        header.setBackground(new Color(245, 245, 245));
-        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200)));
-
-        // ✅ Center-align header text
-        DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) header.getDefaultRenderer();
-        headerRenderer.setHorizontalAlignment(JLabel.CENTER);
-    
-        // Optional: center align cells
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+    // Table cell renderer
+    private class ResponsiveCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (!isSelected) {
+                c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(230, 240, 255));
+            }
+            setHorizontalAlignment(SwingConstants.CENTER);
+            c.setFont(new Font("SansSerif", Font.PLAIN, 13));
+            return c;
         }
     }
+
+    // Table header renderer
+    private static class JTableHeaderRenderer extends DefaultTableCellRenderer {
+        public JTableHeaderRenderer() {
+            setOpaque(true);
+            setBackground(new Color(33, 150, 243));
+            setForeground(Color.WHITE);
+            setFont(new Font("SansSerif", Font.BOLD, 14));
+            setHorizontalAlignment(SwingConstants.CENTER);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            return this;
+        }
+    }
+
+    // Scrollbar UI
+    private static class ModernScrollBarUI extends BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            thumbColor = Color.WHITE;
+            trackColor = new Color(0, 0, 0, 0);
+        }
+
+        @Override
+        protected JButton createDecreaseButton(int orientation) {
+            return createInvisibleButton();
+        }
+
+        @Override
+        protected JButton createIncreaseButton(int orientation) {
+            return createInvisibleButton();
+        }
+
+        private JButton createInvisibleButton() {
+            JButton button = new JButton();
+            button.setPreferredSize(new Dimension(0, 0));
+            button.setMinimumSize(new Dimension(0, 0));
+            button.setMaximumSize(new Dimension(0, 0));
+            return button;
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setPaint(new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd));
+        GradientPaint gp = new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd);
+        g2d.setPaint(gp);
         g2d.fillRect(0, 0, getWidth(), getHeight());
     }
 }
