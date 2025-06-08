@@ -17,7 +17,7 @@ import java.time.Duration;
 
 //author conrad
 
-public class SalaryCalculatorPanel extends JPanel {
+public class PayrollPanel extends JPanel {
 
     private JTable employeeTable;
     private JTextArea txtResult;
@@ -25,7 +25,7 @@ public class SalaryCalculatorPanel extends JPanel {
     private JButton btnCalculate;
     private String selectedEmployeeID;
 
-    public SalaryCalculatorPanel() {
+    public PayrollPanel() {
         fileHandler = new FileHandler();
         fileHandler.readEmployeeFile();
         fileHandler.readAttendanceFile();
@@ -161,7 +161,7 @@ public class SalaryCalculatorPanel extends JPanel {
                 double phoneAllowance = benefits.getPhoneAllowance();
                 double clothingAllowance = benefits.getClothingAllowance();
 
-                SalaryCalculator calculator = new SalaryCalculator();
+                PayrollLogic calculator = new PayrollLogic();
                 double grossWeekly = calculator.calculateGrossWeeklySalary(hourlyRate, totalHoursWorked, riceSubsidy, phoneAllowance, clothingAllowance);
                 double latePenalty = calculator.calculateLateDeduction(hourlyRate, totalLateMinutes);
                 double adjustedGross = grossWeekly - latePenalty;

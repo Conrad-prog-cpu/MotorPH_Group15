@@ -28,7 +28,7 @@ public class DashboardPanel extends JFrame {
     // Reusable panel to show employee information
     private final EmployeePanel employeePanel = new EmployeePanel();
 
-    SalaryCalculatorPanel salaryPanel = new SalaryCalculatorPanel();
+    PayrollPanel salaryPanel = new PayrollPanel();
     private boolean hasShownPayrollInstruction = false;
 
     // Constructor for the dashboard, accepts a user parameter

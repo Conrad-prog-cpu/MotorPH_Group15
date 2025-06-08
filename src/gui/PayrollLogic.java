@@ -8,11 +8,11 @@ package gui;
  *
  * @author santos.conrad
  */
-public class SalaryCalculator {
+public class PayrollLogic {
 
     private Deductions deductions;
 
-    public SalaryCalculator() {
+    public PayrollLogic() {
         this.deductions = new Deductions();
     }
 
