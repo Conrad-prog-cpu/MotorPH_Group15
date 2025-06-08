@@ -14,13 +14,13 @@ import java.awt.event.MouseEvent;
  *
  * @author santos.conrad
  */
-public class DashboardTablePopupMenu {
+public class EmployeeTablePopUp {
 
     private final JTable table;
     private final FileHandler fileHandler;
     private final DashboardTable dashboardTable;
 
-    public DashboardTablePopupMenu(JTable table, FileHandler fileHandler, DashboardTable dashboardTable) {
+    public EmployeeTablePopUp(JTable table, FileHandler fileHandler, DashboardTable dashboardTable) {
         this.table = table;
         this.fileHandler = fileHandler;
         this.dashboardTable = dashboardTable;

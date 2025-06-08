@@ -66,7 +66,7 @@ public class DashboardTable extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         refreshTable(employeeData);
-        new DashboardTablePopupMenu(table, fileHandler, this);
+        new EmployeeTablePopUp(table, fileHandler, this);
         // === Styled "View Employee" Button with Rounded Edges and Font Size 13 ===
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
         bottomPanel.setOpaque(false);
