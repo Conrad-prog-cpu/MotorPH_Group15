@@ -14,12 +14,14 @@ public class EmployeePanel extends JPanel {
     private final Color gradientEnd = new Color(255, 229, 180);
 
     private final JTextField searchField = new JTextField(20);
+    private final FileHandler fileHandler;
     private final EmployeeTable dashboardTable;
-
+    
     public EmployeePanel() {
         setLayout(new BorderLayout());
         setOpaque(false);
-
+        fileHandler = new FileHandler();
+        dashboardTable = new EmployeeTable(fileHandler);
         // Top Panel: Search and Action Buttons
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
@@ -47,12 +49,116 @@ public class EmployeePanel extends JPanel {
         topPanel.add(leftPanel, BorderLayout.WEST);
         topPanel.add(rightPanel, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
+        
+        
 
         // Modern Table
-        dashboardTable = new EmployeeTable(new FileHandler());
+        
         dashboardTable.setBorder(new EmptyBorder(20, 50, 10, 50));
         add(dashboardTable, BorderLayout.CENTER);
+        
+        // Inside your EmployeePanel constructor, after `add(dashboardTable, BorderLayout.CENTER);`
+        
+       // Create a bottom panel with right alignment
+      
+        // Bottom Button Panel aligned to right with Update and Delete side by side
+        JPanel bottomButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10)); // right-aligned
+        bottomButtonPanel.setOpaque(false);
+        bottomButtonPanel.setBorder(new EmptyBorder(10, 50, 20, 50)); // match top padding
+
+        // Create Update Button (black)
+        JButton updateButton = new JButton("Update");
+        styleColoredButton(updateButton, Color.BLACK, 120, 36); // Match top button size
+        updateButton.setEnabled(false);
+        bottomButtonPanel.add(updateButton);
+
+        // Create Delete Button (red)
+        JButton deleteButton = new JButton("Delete");
+        styleColoredButton(deleteButton, new Color(220, 20, 60), 120, 36); // Crimson red
+        deleteButton.setEnabled(false);
+        bottomButtonPanel.add(deleteButton);
+
+        // Add to main layout
+        add(bottomButtonPanel, BorderLayout.SOUTH);
+        // Position below the table
+
+        // Add a ListSelectionListener to the table to toggle button states based on row selection
+        dashboardTable.getTable().getSelectionModel().addListSelectionListener(e -> {
+        boolean isSelected = dashboardTable.getTable().getSelectedRow() != -1;
+        updateButton.setEnabled(isSelected);
+        deleteButton.setEnabled(isSelected);
+        });
+
+        updateButton.addActionListener(e -> {
+    int selectedRow = dashboardTable.getTable().getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Please select an employee to update.");
+        return;
     }
+
+         String employeeId = (String) dashboardTable.getTable().getValueAt(selectedRow, 0);
+        String[] employee = fileHandler.getEmployeeById(employeeId);
+        if (employee == null) {
+        JOptionPane.showMessageDialog(this, "Employee not found.");
+        return;
+         }
+
+    JTextField[] fields = new JTextField[employee.length];
+    JPanel panel = new JPanel(new SpringLayout());
+    String[] headers = fileHandler.getEmployeeHeaders();
+
+
+    for (int i = 0; i < employee.length; i++) {
+        panel.add(new JLabel(headers[i] + ":"));
+        fields[i] = new JTextField(employee[i], 20);
+        panel.add(fields[i]);
+         }
+
+        SpringUtilities.makeCompactGrid(panel, employee.length, 2, 6, 6, 6, 6);
+        int result = JOptionPane.showConfirmDialog(this, panel, "Update Employee", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+        String[] updatedData = new String[fields.length];
+        for (int i = 0; i < fields.length; i++) {
+            updatedData[i] = fields[i].getText().trim();
+        }
+
+        try {
+             fileHandler.updateEmployeeField(employeeId, updatedData);
+             dashboardTable.refreshTable(fileHandler.getEmployeeData());
+            JOptionPane.showMessageDialog(this, "Employee updated successfully.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Failed to update: " + ex.getMessage());
+        }
+        }
+        });
+
+            deleteButton.addActionListener(e -> {
+            int selectedRow = dashboardTable.getTable().getSelectedRow();
+        if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Please select an employee to delete.");
+        return;
+        }
+
+        String employeeId = (String) dashboardTable.getTable().getValueAt(selectedRow, 0);
+         int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to delete employee ID " + employeeId + "?",
+            "Confirm Delete", JOptionPane.YES_NO_OPTION);
+
+    if (confirm == JOptionPane.YES_OPTION) {
+        try {
+            fileHandler.deleteEmployeeById(employeeId);
+            dashboardTable.refreshTable(fileHandler.getEmployeeData());
+            JOptionPane.showMessageDialog(this, "Employee deleted.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Failed to delete: " + ex.getMessage());
+        }
+    }
+});
+
+         }
+    
+    
 
     private JPanel buildSearchPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));

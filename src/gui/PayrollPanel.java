@@ -11,7 +11,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.time.LocalTime;
 import java.time.Duration;
 import javax.swing.plaf.basic.BasicScrollBarUI;
@@ -40,7 +39,7 @@ public class PayrollPanel extends JPanel {
         setOpaque(true);
 
         // Top-right button panel
-        btnCalculate = new JButton("Calculate Salary");
+        btnCalculate = new JButton("Compute");
         styleMinimalButton(btnCalculate, 160, 40);
 
         JPanel topRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

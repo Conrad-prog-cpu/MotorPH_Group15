@@ -190,21 +190,21 @@ public class FileHandler { // Class declaration for handling file-related operat
         return false; // Not found
     }
 
-    public boolean updateEmployeeField(String employeeId, String columnName, String newValue) { // Update any field
-        int idIndex = employeeHeaders.indexOf("Employee #"); // ID index
-        int columnIndex = employeeHeaders.indexOf(columnName); // Target column
-
-        if (idIndex == -1 || columnIndex == -1) return false; // Column not found
-
-        for (String[] row : employeeData) {
-            if (row[idIndex].equals(employeeId)) { // Match ID
-                row[columnIndex] = newValue; // Update field
-                writeEmployeeFile(employeeData); // Save
-                return true;
-            }
-        }
-        return false;
-    }
+//    public boolean updateEmployeeField(String employeeId, String columnName, String newValue) { // Update any field
+//        int idIndex = employeeHeaders.indexOf("Employee #"); // ID index
+//        int columnIndex = employeeHeaders.indexOf(columnName); // Target column
+//
+//        if (idIndex == -1 || columnIndex == -1) return false; // Column not found
+//
+//        for (String[] row : employeeData) {
+//            if (row[idIndex].equals(employeeId)) { // Match ID
+//                row[columnIndex] = newValue; // Update field
+//                writeEmployeeFile(employeeData); // Save
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     public boolean deleteEmployeeById(String employeeId) { // Delete employee by ID
         int idIndex = employeeHeaders.indexOf("Employee #"); // Find ID index
@@ -284,21 +284,34 @@ public class FileHandler { // Class declaration for handling file-related operat
     public List<String> getAttendanceHeaders() { // Getter for attendance headers
         return attendanceHeaders;
     }
-    private final String EMPLOYEE_FILE = "employee.txt";
-    public String[] updateEmployeeField(String employeeId) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(EMPLOYEE_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(";", -1); // -1 to include empty trailing fields
-                if (parts.length > 0 && parts[0].trim().equals(employeeId.trim())) {
-                    return parts;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    
+    public String[] getEmployeeById(String employeeId) {
+    int idIndex = employeeHeaders.indexOf("Employee #");
+    for (String[] employee : employeeData) {
+        if (employee[idIndex].equals(employeeId)) {
+            return employee;
         }
-        return null; // not found}
     }
+    return null; // Not found
+}
+
+    private final String EMPLOYEE_FILE = "employee.txt";
+//    public String[] updateEmployeeField(String employeeId) {
+//        try (BufferedReader reader = new BufferedReader(new FileReader(EMPLOYEE_FILE))) {
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                String[] parts = line.split(";", -1); // -1 to include empty trailing fields
+//                if (parts.length > 0 && parts[0].trim().equals(employeeId.trim())) {
+//                    return parts;
+//                }
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return null; // not found}
+//    }
+    
+    
     public void updateEmployeeField(String employeeId, String[] updatedData) {
     File originalFile = new File(EMPLOYEE_FILE);
     File tempFile = new File("employee_temp.txt");
@@ -310,35 +323,40 @@ public class FileHandler { // Class declaration for handling file-related operat
 
         String line;
         while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(";", -1); // FIXED: use semicolon
+            String[] parts = line.split(";", -1);
 
             if (parts.length > 0 && parts[0].trim().equals(employeeId.trim())) {
-                // Write updated data
+                // Write updated line
+                updatedData[0] = employeeId; // Make sure ID remains unchanged
                 writer.write(String.join(";", updatedData));
                 writer.newLine();
                 updated = true;
             } else {
-                // Write existing data
                 writer.write(line);
                 writer.newLine();
             }
         }
 
+        writer.flush(); // Force flush just in case
+
     } catch (IOException e) {
         e.printStackTrace();
     }
 
-    // Replace original file if update was successful
     if (updated) {
         if (originalFile.delete()) {
-            tempFile.renameTo(originalFile);
-            System.out.println("✅ Employee with ID " + employeeId + " updated.");
+            if (!tempFile.renameTo(originalFile)) {
+                System.err.println("❌ Rename failed.");
+            } else {
+                System.out.println("✅ Employee updated.");
+            }
         } else {
             System.err.println("❌ Could not delete original file.");
         }
     } else {
-        tempFile.delete(); // cleanup if no changes made
-        System.out.println("❌ Employee with ID " + employeeId + " not found.");
+        tempFile.delete(); // Clean up
+        System.out.println("❌ Employee not found.");
     }
 }
+
 }

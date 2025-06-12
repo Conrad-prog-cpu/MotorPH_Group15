@@ -66,11 +66,19 @@ public class EmployeeTable extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         refreshTable(employeeData);
-        new EmployeeTablePopUp(table, fileHandler, this);
+       
 
         // View Employee button GUI is removed but logic remains
+        
     }
 
+    public JTable getTable() {
+    return table;
+    }
+
+  
+
+    
     private static class JTableHeaderRenderer extends DefaultTableCellRenderer {
         public JTableHeaderRenderer() {
             setOpaque(true);

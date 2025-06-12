@@ -16,6 +16,8 @@ import java.awt.event.MouseEvent;
 import java.net.URL;
 import model.FileHandler;
 
+
+
 // Main class for the dashboard screen, inherits JFrame for window functionality
 public class DashboardPanel extends JFrame {
 
@@ -67,6 +69,8 @@ public class DashboardPanel extends JFrame {
         namePanel.add(userName);
         namePanel.add(userRole);
         profilePanel.add(namePanel, BorderLayout.CENTER);
+        
+        
 
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
@@ -123,6 +127,7 @@ public class DashboardPanel extends JFrame {
         attendanceBtn.addActionListener(e -> cardLayout.show(contentPanel, "Attendance"));
 
         employeeBtn.addActionListener(e -> cardLayout.show(contentPanel, "Employee"));
+        
 
         payrollBtn.addActionListener(new ActionListener() {
             @Override
@@ -174,7 +179,9 @@ public class DashboardPanel extends JFrame {
 
         return button;
     }
-
+    
+    
+    
     private ImageIcon loadImageIcon(String path, int width, int height) {
         URL imageUrl = getClass().getResource(path);
         if (imageUrl != null) {
