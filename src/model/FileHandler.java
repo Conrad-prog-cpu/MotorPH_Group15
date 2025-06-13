@@ -1,278 +1,240 @@
-package model; // Declares the package location of this class
+package model;
 
-import com.opencsv.*; // Imports OpenCSV classes for CSV operations
-import com.opencsv.exceptions.CsvValidationException; // Imports exception handling for CSV validation
+import com.opencsv.*;
+import com.opencsv.exceptions.CsvValidationException;
 
-import java.io.*; // Imports Java IO classes for file handling
-import java.util.*; // Imports utility classes like List, ArrayList
+import java.io.*;
+import java.util.*;
 
-public class FileHandler { // Class declaration for handling file-related operations
+public class FileHandler {
 
-    private List<String> employeeHeaders = new ArrayList<>(); // Stores the column headers for the employee file
-    private List<String[]> employeeData = new ArrayList<>(); // Stores employee data rows
+    // ======== Fields and Constants ========
+    private final String folderPath = "data";
 
-    private List<String> attendanceHeaders = new ArrayList<>(); // Stores column headers for attendance file
-    private List<String[]> attendanceData = new ArrayList<>(); // Stores attendance data rows
+    private final List<String> employeeHeaders = new ArrayList<>();
+    private final List<String[]> employeeData = new ArrayList<>();
 
-    private final String folderPath = "data"; // Directory path where files are stored
+    private final List<String> attendanceHeaders = new ArrayList<>();
+    private final List<String[]> attendanceData = new ArrayList<>();
 
-    public void readEmployeeFile() { // Reads employee.txt and loads data
-        File file = new File(folderPath + "/employee.txt"); // Defines the employee file path
+    private final String EMPLOYEE_FILE = folderPath + "/employee.txt";
+    private final String ATTENDANCE_FILE = folderPath + "/attendance.txt";
 
-        if (!file.exists()) { // Checks if file exists
-            System.out.println("❌ employee.txt not found."); // Logs error if file doesn't exist
-            return; // Exit method
+    // ======== Read Methods ========
+
+    public void readEmployeeFile() {
+        File file = new File(EMPLOYEE_FILE);
+        if (!file.exists()) {
+            System.out.println("❌ employee.txt not found.");
+            return;
         }
 
-        employeeHeaders.clear(); // Clears any previous headers
-        employeeData.clear(); // Clears any previous employee data
+        employeeHeaders.clear();
+        employeeData.clear();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) { // BufferedReader for file reading
-            String line; // Holds each line
-            boolean isFirstLine = true; // Flag to check header row
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
 
-            while ((line = br.readLine()) != null) { // Reads line by line
-                if (line.trim().isEmpty()) continue; // Skips empty lines
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
 
-                String[] fields = line.split("(?=(?:[^\"]*\"[^\"]*\")*[^\"]*)\\;"); // Splits by semicolon, preserving quoted text
-
+                String[] fields = line.split("(?=(?:[^\"]*\"[^\"]*\")*[^\"]*)\\;");
                 for (int i = 0; i < fields.length; i++) {
-                    fields[i] = fields[i].replaceAll("^\"|\"$", "").trim(); // Removes surrounding quotes and trims whitespace
+                    fields[i] = fields[i].replaceAll("^\"|\"$", "").trim();
                 }
 
-                if (isFirstLine) { // If first line, treat as headers
-                    employeeHeaders.addAll(Arrays.asList(fields)); // Adds headers
-                    isFirstLine = false; // Set flag false after headers
-                } else { // If data row
-                    if (fields.length < employeeHeaders.size()) { // If row is too short
-                        String[] fixed = Arrays.copyOf(fields, employeeHeaders.size()); // Pads row with empty strings
-                        Arrays.fill(fixed, fields.length, employeeHeaders.size(), "");
-                        employeeData.add(fixed); // Add padded row
-                    } else if (fields.length > employeeHeaders.size()) { // If row is too long
-                        String[] fixed = Arrays.copyOf(fields, employeeHeaders.size()); // Trims excess fields
-                        employeeData.add(fixed); // Add trimmed row
-                    } else {
-                        employeeData.add(fields); // Row matches header length
-                    }
+                if (isFirstLine) {
+                    employeeHeaders.addAll(Arrays.asList(fields));
+                    isFirstLine = false;
+                } else {
+                    fields = adjustRowLength(fields, employeeHeaders.size());
+                    employeeData.add(fields);
                 }
             }
 
-            System.out.println("✅ employee.txt loaded: " + employeeData.size() + " rows"); // Success message
+            System.out.println("✅ employee.txt loaded: " + employeeData.size() + " rows");
 
-        } catch (IOException e) { // Handle file read exception
-            System.out.println("❌ Error reading employee file: " + e.getMessage()); // Print error
+        } catch (IOException e) {
+            System.out.println("❌ Error reading employee file: " + e.getMessage());
         }
     }
 
-    public void readAttendanceFile() { // Reads attendance.txt
-        String filePath = folderPath + "/attendance.txt"; // Defines file path
+    public void readAttendanceFile() {
+        File file = new File(ATTENDANCE_FILE);
+        if (!file.exists()) {
+            System.out.println("❌ attendance.txt not found.");
+            return;
+        }
 
-        try {
-            File file = new File(filePath); // File object
-            if (!file.exists()) { // If file doesn't exist
-                System.out.println("attendance.txt file not found."); // Log error
-                return; // Exit method
+        attendanceHeaders.clear();
+        attendanceData.clear();
+
+        try (CSVReader reader = new CSVReaderBuilder(new FileReader(file))
+                .withCSVParser(new CSVParserBuilder().withSeparator(',').build())
+                .build()) {
+
+            String[] line;
+            while ((line = reader.readNext()) != null) {
+                if (line.length == 0 || line[0].trim().isEmpty()) continue;
+                attendanceData.add(line);
             }
 
-            try (CSVReader reader = new CSVReaderBuilder(new FileReader(file)) // Builds CSVReader
-                    .withCSVParser(new CSVParserBuilder().withSeparator(',').build()) // Uses comma as separator
-                    .build()) {
+            System.out.println("✅ Attendance data loaded: " + attendanceData.size() + " rows");
 
-                attendanceHeaders.clear(); // Clears previous headers
-                attendanceData.clear(); // Clears previous data
-
-                String[] line;
-                while ((line = reader.readNext()) != null) { // Reads each line
-                    if (line.length == 0 || line[0].trim().isEmpty()) continue; // Skip empty
-                    attendanceData.add(line); // Add row
-                }
-
-                System.out.println("✅ Attendance data loaded: " + attendanceData.size() + " rows"); // Success
-
-            } catch (CsvValidationException ex) { // Catch parsing errors
-                System.err.println("CSV validation error: " + ex.getMessage()); // Print error
-            }
-
-        } catch (IOException e) { // Catch file read errors
-            System.out.println("Error reading attendance.txt: " + e.getMessage()); // Print error
+        } catch (IOException | CsvValidationException e) {
+            System.out.println("❌ Error reading attendance.txt: " + e.getMessage());
         }
     }
 
-    public void writeEmployeeFile(List<String[]> data) { // Writes entire employee file
-        String filePath = folderPath + "/employee.txt"; // File path
+    // ======== Write Methods ========
 
-        try {
-            File file = new File(filePath); // File object
-            if (!file.exists()) file.createNewFile(); // Create file if not exists
+    public void writeEmployeeFile(List<String[]> data) {
+        try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(EMPLOYEE_FILE))
+                .withSeparator(';')
+                .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER)
+                .build()) {
 
-            try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(file)) // CSV writer
-                    .withSeparator(';') // Semicolon separator
-                    .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER) // No quote chars
-                    .build()) {
-
-                writer.writeNext(employeeHeaders.toArray(String[]::new)); // Write headers
-                for (String[] row : data) {
-                    writer.writeNext(row); // Write each row
-                }
-
-                System.out.println("✅ employee.txt written successfully."); // Success
+            writer.writeNext(employeeHeaders.toArray(String[]::new));
+            for (String[] row : data) {
+                writer.writeNext(row);
             }
 
-        } catch (IOException e) { // Catch write errors
-            System.out.println("❌ Error writing to employee.txt: " + e.getMessage()); // Print error
+            System.out.println("✅ employee.txt written successfully.");
+
+        } catch (IOException e) {
+            System.out.println("❌ Error writing employee file: " + e.getMessage());
         }
     }
 
-    public void writeAttendanceFile(List<String[]> data) { // Writes attendance file
-        String filePath = folderPath + "/attendance.txt"; // File path
+    public void writeAttendanceFile(List<String[]> data) {
+        try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(ATTENDANCE_FILE))
+                .withSeparator(',')
+                .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER)
+                .build()) {
 
-        try {
-            File file = new File(filePath); // File object
-            if (!file.exists()) file.createNewFile(); // Create if not exist
-
-            try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(file)) // CSV writer
-                    .withSeparator(',') // Comma separator
-                    .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER) // No quotes
-                    .build()) {
-
-                writer.writeNext(attendanceHeaders.toArray(String[]::new)); // Write headers
-                for (String[] row : data) {
-                    writer.writeNext(row); // Write each row
-                }
-
-                System.out.println("✅ attendance.txt written successfully."); // Success
+            writer.writeNext(attendanceHeaders.toArray(String[]::new));
+            for (String[] row : data) {
+                writer.writeNext(row);
             }
 
-        } catch (IOException e) { // Catch errors
-            System.out.println("❌ Error writing to attendance.txt: " + e.getMessage()); // Print error
+            System.out.println("✅ attendance.txt written successfully.");
+
+        } catch (IOException e) {
+            System.out.println("❌ Error writing attendance file: " + e.getMessage());
         }
     }
 
-    public boolean appendEmployeeToFile(String[] employeeRow) { // Appends a new row to employee file
-        String filePath = folderPath + "/employee.txt"; // File path
+    // ======== Update & Append Methods ========
 
-        try {
-            File file = new File(filePath); // File object
-            if (!file.exists()) { // If not found
-                System.out.println("employee.txt not found."); // Log error
-                return false;
-            }
-
-            try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(file, true)) // Writer in append mode
-                    .withSeparator(';')
-                    .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER)
-                    .build()) {
-                writer.writeNext(employeeRow); // Write new row
-                return true; // Success
-            }
-
-        } catch (IOException e) { // Catch error
-            System.out.println("❌ Error appending to employee.txt: " + e.getMessage()); // Log
+    public boolean appendEmployeeToFile(String[] employeeRow) {
+        try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(EMPLOYEE_FILE, true))
+                .withSeparator(';')
+                .withQuoteChar(CSVWriter.NO_QUOTE_CHARACTER)
+                .build()) {
+            writer.writeNext(employeeRow);
+            return true;
+        } catch (IOException e) {
+            System.out.println("❌ Error appending to employee.txt: " + e.getMessage());
             return false;
         }
     }
-
-    public boolean updateBenefitsByEmployeeId(String employeeId, Benefits benefits) { // Update benefits by ID
-        int riceIndex = employeeHeaders.indexOf("Rice Subsidy"); // Get column index
-        int phoneIndex = employeeHeaders.indexOf("Phone Allowance");
-        int clothingIndex = employeeHeaders.indexOf("Clothing Allowance");
+    
+    public boolean updateEmployeeField(String employeeId, String columnName, String newValue) {
         int idIndex = employeeHeaders.indexOf("Employee #");
+        int columnIndex = employeeHeaders.indexOf(columnName);
+
+        if (idIndex == -1 || columnIndex == -1) return false;
 
         for (String[] row : employeeData) {
-            if (row[idIndex].equals(employeeId)) { // Match ID
-                row[riceIndex] = String.valueOf(benefits.getRiceSubsidy()); // Update benefit values
-                row[phoneIndex] = String.valueOf(benefits.getPhoneAllowance());
-                row[clothingIndex] = String.valueOf(benefits.getClothingAllowance());
-                writeEmployeeFile(employeeData); // Save changes
-                return true;
-            }
-        }
-        return false; // Not found
-    }
-
-//    public boolean updateEmployeeField(String employeeId, String columnName, String newValue) { // Update any field
-//        int idIndex = employeeHeaders.indexOf("Employee #"); // ID index
-//        int columnIndex = employeeHeaders.indexOf(columnName); // Target column
-//
-//        if (idIndex == -1 || columnIndex == -1) return false; // Column not found
-//
-//        for (String[] row : employeeData) {
-//            if (row[idIndex].equals(employeeId)) { // Match ID
-//                row[columnIndex] = newValue; // Update field
-//                writeEmployeeFile(employeeData); // Save
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-
-    public boolean deleteEmployeeById(String employeeId) { // Delete employee by ID
-        int idIndex = employeeHeaders.indexOf("Employee #"); // Find ID index
-        boolean removed = employeeData.removeIf(row -> row[idIndex].equals(employeeId)); // Remove row
-        if (removed) {
-            writeEmployeeFile(employeeData); // Save updated data
-        }
-        return removed;
-    }
-
-    public boolean deleteAttendance(String employeeId, String date) { // Delete attendance row
-        int empIndex = 0;  // Assuming Employee ID is column 0
-        int dateIndex = 1; // Assuming Date is column 1
-
-        boolean removed = attendanceData.removeIf(row ->
-                row[empIndex].equals(employeeId) && row[dateIndex].equals(date)); // Match ID & date
-
-        if (removed) {
-            writeAttendanceFile(attendanceData); // Save
-        }
-        return removed;
-    }
-
-    public boolean updateAttendance(String employeeId, String date, String[] newRow) { // Update row
-        int empIndex = 0;
-        int dateIndex = 1;
-
-        for (int i = 0; i < attendanceData.size(); i++) {
-            String[] row = attendanceData.get(i);
-            if (row[empIndex].equals(employeeId) && row[dateIndex].equals(date)) { // Match
-                attendanceData.set(i, newRow); // Replace row
-                writeAttendanceFile(attendanceData); // Save
+            if (row[idIndex].equals(employeeId)) {
+                row[columnIndex] = newValue;
+                writeEmployeeFile(employeeData);
                 return true;
             }
         }
         return false;
     }
 
-    public Benefits getBenefitsByEmployeeId(String employeeId) { // Fetch benefit data
-        for (String[] emp : employeeData) {
-            if (emp[0].equals(employeeId)) { // Match ID
-                double rice = safeParseDouble(emp[14], 0.0); // Parse benefits
-                double phone = safeParseDouble(emp[15], 0.0);
-                double clothing = safeParseDouble(emp[16], 0.0);
-                return new Benefits(rice, phone, clothing); // Return object
+    public boolean updateBenefitsByEmployeeId(String employeeId, Benefits benefits) {
+        return updateEmployeeField(employeeId, "Rice Subsidy", String.valueOf(benefits.getRiceSubsidy())) &&
+               updateEmployeeField(employeeId, "Phone Allowance", String.valueOf(benefits.getPhoneAllowance())) &&
+               updateEmployeeField(employeeId, "Clothing Allowance", String.valueOf(benefits.getClothingAllowance()));
+    }
+
+    public boolean updateAttendance(String employeeId, String date, String[] newRow) {
+        for (int i = 0; i < attendanceData.size(); i++) {
+            String[] row = attendanceData.get(i);
+            if (row[0].equals(employeeId) && row[1].equals(date)) {
+                attendanceData.set(i, newRow);
+                writeAttendanceFile(attendanceData);
+                return true;
             }
         }
-        return new Benefits(0.0, 0.0, 0.0); // Default if not found
+        return false;
     }
 
-    private double safeParseDouble(String value, double defaultValue) { // Parses string to double safely
+    // ======== Delete Methods ========
+
+    public boolean deleteEmployeeById(String employeeId) {
+        int idIndex = employeeHeaders.indexOf("Employee #");
+        boolean removed = employeeData.removeIf(row -> row[idIndex].equals(employeeId));
+        if (removed) writeEmployeeFile(employeeData);
+        return removed;
+    }
+
+    public boolean deleteAttendance(String employeeId, String date) {
+        boolean removed = attendanceData.removeIf(row -> row[0].equals(employeeId) && row[1].equals(date));
+        if (removed) writeAttendanceFile(attendanceData);
+        return removed;
+    }
+
+    // ======== Utility Methods ========
+
+    public Benefits getBenefitsByEmployeeId(String employeeId) {
+        for (String[] emp : employeeData) {
+            if (emp[0].equals(employeeId)) {
+                double rice = safeParseDouble(emp[14], 0.0);
+                double phone = safeParseDouble(emp[15], 0.0);
+                double clothing = safeParseDouble(emp[16], 0.0);
+                return new Benefits(rice, phone, clothing);
+            }
+        }
+        return new Benefits(0.0, 0.0, 0.0);
+    }
+
+    private double safeParseDouble(String value, double defaultValue) {
         try {
-            return Double.parseDouble(value.replace("\"", "").replace(",", "").trim()); // Clean and parse
+            return Double.parseDouble(value.replace("\"", "").replace(",", "").trim());
         } catch (NumberFormatException e) {
-            System.err.println("Failed to parse double: " + value); // Log error
-            return defaultValue; // Return fallback
+            System.err.println("Failed to parse double: " + value);
+            return defaultValue;
         }
     }
 
-    public List<String[]> getEmployeeData() { // Getter for employee data
+    private String[] adjustRowLength(String[] fields, int expectedSize) {
+        if (fields.length < expectedSize) {
+            String[] padded = Arrays.copyOf(fields, expectedSize);
+            Arrays.fill(padded, fields.length, expectedSize, "");
+            return padded;
+        } else if (fields.length > expectedSize) {
+            return Arrays.copyOf(fields, expectedSize);
+        } else {
+            return fields;
+        }
+    }
+
+    // ======== Getters ========
+
+    public List<String[]> getEmployeeData() {
         return employeeData;
     }
 
-    public List<String[]> getAttendanceData() { // Getter for attendance data
+    public List<String[]> getAttendanceData() {
         return attendanceData;
     }
 
-    public String[] getEmployeeHeaders() { // Getter for static headers
+    public String[] getEmployeeHeaders() {
         return new String[]{
                 "Employee #", "Last Name", "First Name", "Birthday", "Address", "Phone Number",
                 "SSS #", "Philhealth #", "TIN #", "Pag-ibig #", "Status", "Position",
@@ -281,82 +243,15 @@ public class FileHandler { // Class declaration for handling file-related operat
         };
     }
 
-    public List<String> getAttendanceHeaders() { // Getter for attendance headers
+    public List<String> getAttendanceHeaders() {
         return attendanceHeaders;
     }
-    
+
     public String[] getEmployeeById(String employeeId) {
-    int idIndex = employeeHeaders.indexOf("Employee #");
-    for (String[] employee : employeeData) {
-        if (employee[idIndex].equals(employeeId)) {
-            return employee;
+        int idIndex = employeeHeaders.indexOf("Employee #");
+        for (String[] row : employeeData) {
+            if (row[idIndex].equals(employeeId)) return row;
         }
+        return null;
     }
-    return null; // Not found
-}
-
-    private final String EMPLOYEE_FILE = "employee.txt";
-//    public String[] updateEmployeeField(String employeeId) {
-//        try (BufferedReader reader = new BufferedReader(new FileReader(EMPLOYEE_FILE))) {
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                String[] parts = line.split(";", -1); // -1 to include empty trailing fields
-//                if (parts.length > 0 && parts[0].trim().equals(employeeId.trim())) {
-//                    return parts;
-//                }
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return null; // not found}
-//    }
-    
-    
-    public void updateEmployeeField(String employeeId, String[] updatedData) {
-    File originalFile = new File(EMPLOYEE_FILE);
-    File tempFile = new File("employee_temp.txt");
-
-    boolean updated = false;
-
-    try (BufferedReader reader = new BufferedReader(new FileReader(originalFile));
-         BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
-
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(";", -1);
-
-            if (parts.length > 0 && parts[0].trim().equals(employeeId.trim())) {
-                // Write updated line
-                updatedData[0] = employeeId; // Make sure ID remains unchanged
-                writer.write(String.join(";", updatedData));
-                writer.newLine();
-                updated = true;
-            } else {
-                writer.write(line);
-                writer.newLine();
-            }
-        }
-
-        writer.flush(); // Force flush just in case
-
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-
-    if (updated) {
-        if (originalFile.delete()) {
-            if (!tempFile.renameTo(originalFile)) {
-                System.err.println("❌ Rename failed.");
-            } else {
-                System.out.println("✅ Employee updated.");
-            }
-        } else {
-            System.err.println("❌ Could not delete original file.");
-        }
-    } else {
-        tempFile.delete(); // Clean up
-        System.out.println("❌ Employee not found.");
-    }
-}
-
 }
