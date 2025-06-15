@@ -1,39 +1,41 @@
-// Declares package location for organization
+// Declares the package location of this class
 package gui;
 
-// Swing components for building GUI
+// Import statements for GUI components and utilities
 import javax.swing.*;
-// Allows setting borders (like padding)
 import javax.swing.border.EmptyBorder;
-// For layout and color controls
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-// For handling button clicks and events
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-// For loading image resources
 import java.net.URL;
+
 import model.FileHandler;
 
-
-
-// Main class for the dashboard screen, inherits JFrame for window functionality
+/**
+ * DashboardPanel serves as the main window for the MotorPH HR system.
+ * It features navigation options and displays different panels: Attendance, Employee, and Payroll.
+ */
 public class DashboardPanel extends JFrame {
 
-    // Layout manager that allows switching between different panels
+    // Manages panel switching within the main content area
     private final CardLayout cardLayout = new CardLayout();
 
-    // Panel that will hold different views like attendance, employee, payroll
+    // Panel that contains different views (e.g., Employee, Attendance, Payroll)
     JPanel contentPanel = new JPanel(); 
 
-    // Reusable panel to show employee information
+    // Panels for displaying employee and payroll data
     private final EmployeePanel employeePanel = new EmployeePanel();
-
     PayrollPanel salaryPanel = new PayrollPanel();
+
+    // Ensures the payroll instruction popup only appears once
     private boolean hasShownPayrollInstruction = false;
 
-    // Constructor for the dashboard, accepts a user parameter
+    /**
+     * Constructor that initializes the dashboard and its components.
+     * @param user The current user's name (currently unused)
+     */
     public DashboardPanel(String user) {
         setTitle("MotorPH Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -42,17 +44,20 @@ public class DashboardPanel extends JFrame {
         setLayout(new BorderLayout());
         setMinimumSize(new Dimension(800, 500));
 
+        // Define UI styling
         Color sidebarColor = Color.WHITE;
         Color gradientStart = new Color(255, 204, 229);
         Color gradientEnd = new Color(255, 229, 180);
         Font boldFont = new Font("Segoe UI", Font.BOLD, 16);
         Font regularFont = new Font("Segoe UI", Font.PLAIN, 14);
 
+        // Sidebar setup
         JPanel sidebar = new JPanel(new BorderLayout());
         sidebar.setBackground(sidebarColor);
         sidebar.setPreferredSize(new Dimension(250, getHeight()));
         sidebar.setBorder(new EmptyBorder(20, 20, 20, 20));
 
+        // User profile panel at the top of sidebar
         JPanel profilePanel = new JPanel(new BorderLayout(10, 0));
         profilePanel.setBackground(sidebarColor);
         JLabel profileIcon = new JLabel(loadImageIcon("/assets/userprofile.png", 40, 40));
@@ -69,9 +74,8 @@ public class DashboardPanel extends JFrame {
         namePanel.add(userName);
         namePanel.add(userRole);
         profilePanel.add(namePanel, BorderLayout.CENTER);
-        
-        
 
+        // Navigation buttons panel
         JPanel navPanel = new JPanel();
         navPanel.setLayout(new BoxLayout(navPanel, BoxLayout.Y_AXIS));
         navPanel.setBackground(sidebarColor);
@@ -84,18 +88,19 @@ public class DashboardPanel extends JFrame {
         generalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         navPanel.add(generalLabel);
 
-        // Create buttons
+        // Create navigation buttons with icons
         JButton attendanceBtn = createNavButton("Attendance", "attendance.png");
         JButton employeeBtn = createNavButton("Employee", "employee.png");
         JButton payrollBtn = createNavButton("Payroll", "payroll.png");
 
-        // 🟢 Employee button goes first now
+        // Add buttons to sidebar
         navPanel.add(employeeBtn);
         navPanel.add(Box.createVerticalStrut(5));
         navPanel.add(attendanceBtn);
         navPanel.add(Box.createVerticalStrut(5));
         navPanel.add(payrollBtn);
 
+        // Log-out button setup
         JButton logoutButton = createNavButton("Log-out", "logout.png");
         logoutButton.setForeground(Color.GRAY);
         logoutButton.addActionListener(e -> {
@@ -103,10 +108,12 @@ public class DashboardPanel extends JFrame {
             SwingUtilities.invokeLater(() -> new LoginPanel().setVisible(true));
         });
 
+        // Add all components to the sidebar
         sidebar.add(profilePanel, BorderLayout.NORTH);
         sidebar.add(navPanel, BorderLayout.CENTER);
         sidebar.add(logoutButton, BorderLayout.SOUTH);
 
+        // Main content area with a gradient background
         contentPanel = new JPanel(cardLayout) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -117,21 +124,23 @@ public class DashboardPanel extends JFrame {
             }
         };
 
+        // Load attendance data and initialize panels
         FileHandler fileHandler = new FileHandler();
         AttendancePanel attendancePanel = new AttendancePanel(fileHandler);
+
+        // Add all panels to the card layout
         contentPanel.add(employeePanel, "Employee");
         contentPanel.add(attendancePanel, "Attendance");
         contentPanel.add(salaryPanel, "Payroll");
 
-        // Logic for switching views
+        // Button click listeners to switch views
         attendanceBtn.addActionListener(e -> cardLayout.show(contentPanel, "Attendance"));
-
         employeeBtn.addActionListener(e -> cardLayout.show(contentPanel, "Employee"));
         
-
         payrollBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // Show instruction on first access
                 if (!hasShownPayrollInstruction) {
                     JOptionPane.showMessageDialog(
                         null,
@@ -145,11 +154,18 @@ public class DashboardPanel extends JFrame {
             }
         });
 
+        // Add sidebar and main content to the frame
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
         setVisible(true);
     }
 
+    /**
+     * Creates a styled navigation button with an icon.
+     * @param text The button label
+     * @param iconFileName The icon image file located in /assets/
+     * @return A customized JButton
+     */
     private JButton createNavButton(String text, String iconFileName) {
         JButton button = new JButton(text);
         button.setIcon(loadImageIcon("/assets/" + iconFileName, 20, 20));
@@ -165,6 +181,7 @@ public class DashboardPanel extends JFrame {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
 
+        // Hover effect for better UX
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -179,9 +196,14 @@ public class DashboardPanel extends JFrame {
 
         return button;
     }
-    
-    
-    
+
+    /**
+     * Loads and resizes an image icon from the resources folder.
+     * @param path Relative path to the image (e.g., "/assets/icon.png")
+     * @param width Desired icon width
+     * @param height Desired icon height
+     * @return Scaled ImageIcon, or null if not found
+     */
     private ImageIcon loadImageIcon(String path, int width, int height) {
         URL imageUrl = getClass().getResource(path);
         if (imageUrl != null) {

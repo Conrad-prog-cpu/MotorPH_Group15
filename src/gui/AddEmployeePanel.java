@@ -1,4 +1,3 @@
-//@AUTHOR GHAB
 package gui;
 
 import model.FileHandler;
@@ -27,16 +26,20 @@ public class AddEmployeePanel extends JPanel {
         this.fileHandler = fileHandler;
         this.onEmployeeAdded = onEmployeeAdded;
 
+        // Set up main panel layout
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createTitledBorder("Add New Employee"));
 
+        // Panel to hold form fields
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 5, 5));
         JScrollPane scrollPane = new JScrollPane(formPanel);
         scrollPane.setPreferredSize(new Dimension(450, 450));
 
+        // Load headers from employee file
         fileHandler.readEmployeeFile();
         String[] headersFromFile = fileHandler.getEmployeeHeaders();
 
+        // Merge default and additional required fields
         LinkedHashMap<String, Boolean> finalHeaders = new LinkedHashMap<>();
         for (String header : headersFromFile) {
             finalHeaders.put(header, isRequired(header));
@@ -45,6 +48,7 @@ public class AddEmployeePanel extends JPanel {
             finalHeaders.putIfAbsent(extra, true);
         }
 
+        // Dynamically generate label-input pairs
         for (Map.Entry<String, Boolean> entry : finalHeaders.entrySet()) {
             String header = entry.getKey();
             boolean required = entry.getValue();
@@ -52,6 +56,7 @@ public class AddEmployeePanel extends JPanel {
             JPanel labelPanel = new JPanel(new BorderLayout());
             JLabel label = new JLabel(header + ":");
 
+            // Visual indicator for required fields
             if (required) {
                 JLabel asterisk = new JLabel("*");
                 asterisk.setForeground(Color.RED);
@@ -66,8 +71,8 @@ public class AddEmployeePanel extends JPanel {
                 labelPanel.add(label, BorderLayout.WEST);
             }
 
+            // Define input field based on field type
             JComponent inputField;
-
             switch (header.toLowerCase()) {
                 case "birthday":
                     DatePickerSettings settings = new DatePickerSettings();
@@ -96,40 +101,50 @@ public class AddEmployeePanel extends JPanel {
                     inputField = new JTextField();
             }
 
+            // Add label and field to the form panel
             formPanel.add(labelPanel);
             formPanel.add(inputField);
             fieldMap.put(header, inputField);
         }
 
+        // Set up button actions
         submitButton.addActionListener(this::addEmployee);
         backButton.addActionListener(e -> {
             if (onEmployeeAdded != null) onEmployeeAdded.run();
         });
 
+        // Bottom panel for buttons and reminder
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomPanel.add(new JLabel("* Required fields"));
         bottomPanel.add(backButton);
         bottomPanel.add(submitButton);
 
+        // Add everything to main panel
         add(scrollPane, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
+    /**
+     * Collects and validates input data, then adds employee to file.
+     */
     private void addEmployee(ActionEvent e) {
         String[] newRow = new String[fieldMap.size()];
         int index = 0;
         boolean hasError = false;
         StringBuilder errorMessages = new StringBuilder();
 
+        // Reset all field borders before validation
         for (JComponent field : fieldMap.values()) {
             field.setBorder(UIManager.getBorder("TextField.border"));
         }
 
+        // Loop through each field for validation
         for (Map.Entry<String, JComponent> entry : fieldMap.entrySet()) {
             String header = entry.getKey();
             JComponent component = entry.getValue();
             String value = "";
 
+            // Extract field value
             if (component instanceof JTextField) {
                 value = ((JTextField) component).getText().trim();
             } else if (component instanceof DatePicker) {
@@ -138,12 +153,14 @@ public class AddEmployeePanel extends JPanel {
                 value = ((JComboBox<?>) component).getSelectedItem().toString();
             }
 
+            // Check if required field is empty
             if (isRequired(header) && value.isEmpty()) {
                 component.setBorder(new LineBorder(Color.RED, 2));
                 hasError = true;
                 errorMessages.append("- ").append(header).append(" is required.\n");
             }
 
+            // Validate numeric fields
             if ((header.equalsIgnoreCase("Employee #") ||
                  header.equalsIgnoreCase("Phone Number") ||
                  header.equalsIgnoreCase("SSS #") ||
@@ -157,6 +174,7 @@ public class AddEmployeePanel extends JPanel {
                 errorMessages.append("- ").append(header).append(" must be numeric.\n");
             }
 
+            // Check for duplicate employee number
             if (header.equalsIgnoreCase("Employee Number") && employeeNumberExists(value)) {
                 component.setBorder(new LineBorder(Color.RED, 2));
                 component.requestFocus();
@@ -169,12 +187,14 @@ public class AddEmployeePanel extends JPanel {
             newRow[index++] = value;
         }
 
+        // Show validation errors if any
         if (hasError) {
             JOptionPane.showMessageDialog(this, "Please fix the following:\n" + errorMessages,
                     "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
+        // Append to file and notify user
         if (fileHandler.appendEmployeeToFile(newRow)) {
             fileHandler.readEmployeeFile();
             JOptionPane.showMessageDialog(this, "✅ Employee added successfully!");
@@ -186,6 +206,9 @@ public class AddEmployeePanel extends JPanel {
         }
     }
 
+    /**
+     * Checks if given employee number already exists in file.
+     */
     private boolean employeeNumberExists(String empNum) {
         for (String[] row : fileHandler.getEmployeeData()) {
             if (row.length > 0 && row[0].equalsIgnoreCase(empNum)) {
@@ -195,6 +218,9 @@ public class AddEmployeePanel extends JPanel {
         return false;
     }
 
+    /**
+     * Clears all input fields after submission or reset.
+     */
     private void clearFields() {
         for (Map.Entry<String, JComponent> entry : fieldMap.entrySet()) {
             JComponent field = entry.getValue();
@@ -209,6 +235,9 @@ public class AddEmployeePanel extends JPanel {
         }
     }
 
+    /**
+     * Determines if a field is required based on its name.
+     */
     private boolean isRequired(String header) {
         return header.equalsIgnoreCase("Employee #")
                 || header.equalsIgnoreCase("Last Name")
@@ -221,6 +250,9 @@ public class AddEmployeePanel extends JPanel {
                 || header.equalsIgnoreCase("Pag-ibig #");
     }
 
+    /**
+     * Document filter that restricts input to numeric characters only.
+     */
     private static class NumericDocumentFilter extends DocumentFilter {
         @Override
         public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
@@ -237,17 +269,20 @@ public class AddEmployeePanel extends JPanel {
         }
     }
 
-    // public static void main(String[] args) {
-    //     SwingUtilities.invokeLater(() -> {
-    //         FileHandler fileHandler = new FileHandler();
-    //         fileHandler.readEmployeeFile();
+    // Uncomment this to test the panel independently
+    /*
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            FileHandler fileHandler = new FileHandler();
+            fileHandler.readEmployeeFile();
 
-    //         JFrame frame = new JFrame("Add Employee Panel");
-    //         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    //         frame.setSize(550, 600);
-    //         frame.setLocationRelativeTo(null);
-    //         frame.add(new AddEmployeePanel(fileHandler, null));
-    //         frame.setVisible(true);
-    //     });
-    // }
+            JFrame frame = new JFrame("Add Employee Panel");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(550, 600);
+            frame.setLocationRelativeTo(null);
+            frame.add(new AddEmployeePanel(fileHandler, null));
+            frame.setVisible(true);
+        });
+    }
+    */
 }

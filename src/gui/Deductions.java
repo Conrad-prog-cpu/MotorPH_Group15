@@ -1,16 +1,20 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package gui;
 
 /**
- *
- * @author santos.conrad
+ * Handles the computation of various government-mandated deductions such as
+ * SSS, PhilHealth, Pag-IBIG, and withholding tax based on the employee's
+ * salary.
  */
 public class Deductions {
 
+    /**
+     * Calculates SSS contribution based on salary brackets defined by SSS.
+     *
+     * @param basicSalary the employee's monthly basic salary
+     * @return the employee's SSS contribution
+     */
     public double calculateSSS(double basicSalary) {
+        // SSS salary brackets with corresponding employee contributions
         double[][] sssMatrix = {
             {0, 3249.99, 135.00}, {3250, 3749.99, 157.50}, {3750, 4249.99, 180.00},
             {4250, 4749.99, 202.50}, {4750, 5249.99, 225.00}, {5250, 5749.99, 247.50},
@@ -29,6 +33,7 @@ public class Deductions {
             {23750, 24249.99, 1080.00}, {24250, 24749.99, 1102.50}, {24750, Double.MAX_VALUE, 1125.00}
         };
 
+        // Find the correct bracket for the given salary and return the SSS amount
         for (double[] row : sssMatrix) {
             if (basicSalary >= row[0] && basicSalary <= row[1]) {
                 return row[2];
@@ -37,18 +42,43 @@ public class Deductions {
         return 0.0;
     }
 
+    /**
+     * Calculates PhilHealth contribution (employee share only).
+     *
+     * @param basicSalary the employee's monthly basic salary
+     * @return half of the total PhilHealth contribution (employee share)
+     */
     public double calculatePhilHealth(double basicSalary) {
         double monthlyPremium = basicSalary * 0.03;
-        if (monthlyPremium < 300) monthlyPremium = 300;
-        if (monthlyPremium > 1800) monthlyPremium = 1800;
-        return monthlyPremium / 2; // Employee share only
+
+        // Set minimum and maximum limits for premium
+        if (monthlyPremium < 300) {
+            monthlyPremium = 300;
+        }
+        if (monthlyPremium > 1800) {
+            monthlyPremium = 1800;
+        }
+
+        return monthlyPremium / 2; // Only half paid by employee
     }
 
+    /**
+     * Calculates Pag-IBIG contribution based on salary.
+     *
+     * @param basicSalary the employee's monthly basic salary
+     * @return the employee's Pag-IBIG contribution, capped at PHP 100
+     */
     public double calculatePagIbig(double basicSalary) {
         double contribution = basicSalary > 1500 ? basicSalary * 0.02 : basicSalary * 0.01;
         return Math.min(contribution, 100);
     }
 
+    /**
+     * Calculates the monthly withholding tax based on taxable income brackets.
+     *
+     * @param monthlyTaxableIncome the income subject to withholding tax
+     * @return the withholding tax amount
+     */
     public double calculateWithholdingTax(double monthlyTaxableIncome) {
         if (monthlyTaxableIncome <= 20832) {
             return 0.0;
@@ -65,18 +95,34 @@ public class Deductions {
         }
     }
 
+    /**
+     * Computes the total deductions (SSS, PhilHealth, Pag-IBIG, Withholding
+     * Tax).
+     *
+     * @param basicSalary the employee's monthly basic salary
+     * @param grossWeekly not used in computation (reserved for possible future
+     * logic)
+     * @return the total amount of deductions
+     */
     public double getTotalDeductions(double basicSalary, double grossWeekly) {
         double sss = calculateSSS(basicSalary);
         double philHealth = calculatePhilHealth(basicSalary);
         double pagIbig = calculatePagIbig(basicSalary);
 
-        // Monthly taxable = basicSalary - non-tax benefits
+        // Taxable income is salary minus mandatory contributions
         double monthlyTaxable = basicSalary - (sss + philHealth + pagIbig);
         double withholdingTax = calculateWithholdingTax(monthlyTaxable);
 
         return sss + philHealth + pagIbig + withholdingTax;
     }
 
+    /**
+     * Returns only the monthly withholding tax (used separately from total
+     * deductions).
+     *
+     * @param basicSalary the employee's monthly basic salary
+     * @return the withholding tax computed after other deductions
+     */
     public double getMonthlyWithholdingTax(double basicSalary) {
         double sss = calculateSSS(basicSalary);
         double philHealth = calculatePhilHealth(basicSalary);

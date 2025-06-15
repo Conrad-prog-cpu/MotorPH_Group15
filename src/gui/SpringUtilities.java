@@ -10,8 +10,6 @@ import java.awt.*;
 /**
  * Utility class for creating compact grid layouts using SpringLayout.
  * This helps to position components in a grid-like structure with equal spacing.
- * 
- * Author: santos.conrad
  */
 public class SpringUtilities {
 

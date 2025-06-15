@@ -1,9 +1,5 @@
 package gui;
 
-/**
- *
- * @author santos.conrad
- */
 public class PayrollLogic {
 
     // Instance of Deductions class to handle all deduction-related computations
