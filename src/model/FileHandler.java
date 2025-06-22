@@ -11,6 +11,7 @@ public class FileHandler {
     // ======== Fields and Constants ========
     // Folder path where the employee and attendance files are stored
     private final String folderPath = "data";
+    private final String credentialsFilePath = "data/credentials.txt";
 
     // Storage for headers and data rows of employee records
     private final List<String> employeeHeaders = new ArrayList<>();
@@ -65,6 +66,28 @@ public class FileHandler {
             System.out.println("❌ Error reading employee file: " + e.getMessage());
         }
     }
+    
+    public boolean authenticateUser(String username, String password) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(credentialsFilePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.trim().split(",");
+                if (parts.length == 2) {
+                    String storedUsername = parts[0].trim();
+                    String storedPassword = parts[1].trim();
+
+                    if (storedUsername.equals(username) && storedPassword.equals(password)) {
+                        return true; // Match found
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading credentials file: " + e.getMessage());
+        }
+
+        return false; // No match
+    }
+
 
     // Reads and parses the attendance file using OpenCSV
     public void readAttendanceFile() {

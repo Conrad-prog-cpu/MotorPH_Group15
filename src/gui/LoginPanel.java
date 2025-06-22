@@ -7,6 +7,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.FileHandler;
 
 // Main login window class extending JFrame
 public class LoginPanel extends JFrame {
@@ -192,24 +193,25 @@ public class LoginPanel extends JFrame {
         // Add login form panel to the background panel
         backgroundPanel.add(card);
         setVisible(true); // Show the frame
-    }
+        }
 
-    // Method to check login credentials and handle logic
-    private void checkLogin() {
+        // Method to check login credentials and handle logic
+        private void checkLogin() {
         String user = usernameField.getText().trim();
         String pass = new String(passwordField.getPassword()).trim();
 
-        if (user.equals("admin") && pass.equals("1234")) {
+        FileHandler fileHandler = new FileHandler();
+
+        if (fileHandler.authenticateUser(user, pass)) {
             // Successful login
             feedbackLabel.setForeground(new Color(34, 139, 34));
             feedbackLabel.setText("Login Successful!");
 
-            // Wait 1 second then open dashboard
             Timer successTimer = new Timer(1000, e -> {
-                dispose(); // Close login window
+                dispose();
                 SwingUtilities.invokeLater(() -> {
                     try {
-                        new DashboardPanel("Admin"); // Open dashboard
+                        new DashboardPanel(user); // Pass username
                     } catch (Exception ex) {
                         Logger.getLogger(LoginPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -224,21 +226,19 @@ public class LoginPanel extends JFrame {
             feedbackLabel.setForeground(Color.RED);
 
             if (attempts >= 3) {
-                // Lock out after 3 failed attempts
                 feedbackLabel.setText("Too many attempts. Try again after 1 minute.");
                 loginButton.setEnabled(false);
 
                 lockoutTimer = new Timer(60000, e -> {
-                    // Re-enable after 1 minute
                     loginButton.setEnabled(true);
                     feedbackLabel.setText(" ");
                     attempts = 0;
-                    ((Timer) e.getSource()).stop(); // Stop the timer
+                    ((Timer) e.getSource()).stop();
                 });
                 lockoutTimer.setRepeats(false);
                 lockoutTimer.start();
+
             } else {
-                // Show error message and clear fields
                 feedbackLabel.setText("<html><div align='center'>Incorrect username or password.<br>Attempt " + attempts + " of 3.</div></html>");
                 usernameField.requestFocus();
                 passwordField.setText("");
