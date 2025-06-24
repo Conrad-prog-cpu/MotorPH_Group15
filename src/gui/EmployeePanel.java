@@ -33,6 +33,8 @@ public class EmployeePanel extends JPanel {
     // Declares an EmployeeTable to display employee data
     private final EmployeeTable dashboardTable;
     
+    
+    
     // Constructor for the EmployeePanel class
     public EmployeePanel() {
         // Sets the layout of this panel to BorderLayout
@@ -306,6 +308,7 @@ public class EmployeePanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please select an employee first.");
             return;
         }
+       
 
         new ViewEmployeePanel(selected);
     }

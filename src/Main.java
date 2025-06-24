@@ -1,5 +1,6 @@
 
 
+import gui.DashboardPanel;
 import gui.LoginPanel;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -14,7 +15,8 @@ public class Main {
 
         // Run on Event Dispatch Thread (best practice for Swing)
         javax.swing.SwingUtilities.invokeLater(() -> {
-            LoginPanel LoginPanel = new LoginPanel(); // Launch the login GUI
+//            LoginPanel LoginPanel = new LoginPanel(); // Launch the login GUI
+            new DashboardPanel("Admin");
         });
     }
 }

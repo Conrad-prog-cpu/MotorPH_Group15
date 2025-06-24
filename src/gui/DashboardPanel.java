@@ -89,16 +89,16 @@ public class DashboardPanel extends JFrame {
         navPanel.add(generalLabel);
 
         // Create navigation buttons with icons
-        JButton attendanceBtn = createNavButton("Attendance", "attendance.png");
+//        JButton attendanceBtn = createNavButton("Attendance", "attendance.png");
         JButton employeeBtn = createNavButton("Employee", "employee.png");
-        JButton payrollBtn = createNavButton("Payroll", "payroll.png");
+//        JButton payrollBtn = createNavButton("Payroll", "payroll.png");
 
         // Add buttons to sidebar
         navPanel.add(employeeBtn);
         navPanel.add(Box.createVerticalStrut(5));
-        navPanel.add(attendanceBtn);
+//        navPanel.add(attendanceBtn);
         navPanel.add(Box.createVerticalStrut(5));
-        navPanel.add(payrollBtn);
+//        navPanel.add(payrollBtn);
 
         // Log-out button setup
         JButton logoutButton = createNavButton("Log-out", "logout.png");
@@ -130,34 +130,35 @@ public class DashboardPanel extends JFrame {
 
         // Add all panels to the card layout
         contentPanel.add(employeePanel, "Employee");
-        contentPanel.add(attendancePanel, "Attendance");
-        contentPanel.add(salaryPanel, "Payroll");
+//        contentPanel.add(attendancePanel, "Attendance");
+//        contentPanel.add(salaryPanel, "Payroll");
 
         // Button click listeners to switch views
-        attendanceBtn.addActionListener(e -> cardLayout.show(contentPanel, "Attendance"));
+//        attendanceBtn.addActionListener(e -> cardLayout.show(contentPanel, "Attendance"));
         employeeBtn.addActionListener(e -> cardLayout.show(contentPanel, "Employee"));
         
-        payrollBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Show instruction on first access
-                if (!hasShownPayrollInstruction) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        "To proceed, please choose an employee by clicking on a row in the table.",
-                        "Instruction",
-                        JOptionPane.INFORMATION_MESSAGE
-                    );
-                    hasShownPayrollInstruction = true;
-                }
-                cardLayout.show(contentPanel, "Payroll");
-            }
-        });
+//        payrollBtn.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                // Show instruction on first access
+//                if (!hasShownPayrollInstruction) {
+//                    JOptionPane.showMessageDialog(
+//                        null,
+//                        "To proceed, please choose an employee by clicking on a row in the table.",
+//                        "Instruction",
+//                        JOptionPane.INFORMATION_MESSAGE
+//                    );
+//                    hasShownPayrollInstruction = true;
+//                }
+//                cardLayout.show(contentPanel, "Payroll");
+//            }
+//        });
 
         // Add sidebar and main content to the frame
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
         setVisible(true);
+        
     }
 
     /**
