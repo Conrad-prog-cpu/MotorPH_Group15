@@ -5,7 +5,7 @@ import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
+import javax.swing.border.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -18,28 +18,44 @@ public class AddEmployeePanel extends JPanel {
     private final Map<String, JComponent> fieldMap = new LinkedHashMap<>();
     private final JButton submitButton = new JButton("Add Employee");
     private final JButton backButton = new JButton("Back");
-
     private final Runnable onEmployeeAdded;
     private final String[] additionalFields = {"Birthday", "Phone Number"};
+
+    private JPanel formPanel;
+    private JPanel bottomPanel;
 
     public AddEmployeePanel(FileHandler fileHandler, Runnable onEmployeeAdded) {
         this.fileHandler = fileHandler;
         this.onEmployeeAdded = onEmployeeAdded;
 
-        // Set up main panel layout
+        setOpaque(false);
         setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createTitledBorder("Add New Employee"));
 
-        // Panel to hold form fields
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 5, 5));
-        JScrollPane scrollPane = new JScrollPane(formPanel);
-        scrollPane.setPreferredSize(new Dimension(450, 450));
+        // Add padding around the panel to prevent overlapping edges
+        setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // Load headers from employee file
+        // Panel to contain form fields
+        formPanel = new JPanel(new GridLayout(0, 2, 10, 10)); // Added gap between components
+        formPanel.setOpaque(false);
+
+        // Wrap formPanel in a container for extra padding
+        JPanel formContainer = new JPanel(new BorderLayout());
+        formContainer.setOpaque(false);
+        formContainer.setBorder(new EmptyBorder(10, 10, 10, 10)); // Padding inside scroll
+        formContainer.add(formPanel, BorderLayout.NORTH);
+
+        // Scroll pane for form (if content overflows)
+        JScrollPane scrollPane = new JScrollPane(formContainer);
+        scrollPane.setPreferredSize(new Dimension(500, 450));
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(null); // Remove default border
+
+        // Read headers
         fileHandler.readEmployeeFile();
         String[] headersFromFile = fileHandler.getEmployeeHeaders();
 
-        // Merge default and additional required fields
+        // Merge headers
         LinkedHashMap<String, Boolean> finalHeaders = new LinkedHashMap<>();
         for (String header : headersFromFile) {
             finalHeaders.put(header, isRequired(header));
@@ -48,15 +64,16 @@ public class AddEmployeePanel extends JPanel {
             finalHeaders.putIfAbsent(extra, true);
         }
 
-        // Dynamically generate label-input pairs
+        // Generate form fields
         for (Map.Entry<String, Boolean> entry : finalHeaders.entrySet()) {
             String header = entry.getKey();
             boolean required = entry.getValue();
 
             JPanel labelPanel = new JPanel(new BorderLayout());
+            labelPanel.setOpaque(false);
+
             JLabel label = new JLabel(header + ":");
 
-            // Visual indicator for required fields
             if (required) {
                 JLabel asterisk = new JLabel("*");
                 asterisk.setForeground(Color.RED);
@@ -71,16 +88,13 @@ public class AddEmployeePanel extends JPanel {
                 labelPanel.add(label, BorderLayout.WEST);
             }
 
-            // Define input field based on field type
             JComponent inputField;
             switch (header.toLowerCase()) {
                 case "birthday":
                     DatePickerSettings settings = new DatePickerSettings();
                     settings.setFormatForDatesCommonEra("yyyy/MM/dd");
-                    DatePicker datePicker = new DatePicker(settings);
-                    inputField = datePicker;
+                    inputField = new DatePicker(settings);
                     break;
-
                 case "phone number":
                 case "employee number":
                 case "sss":
@@ -91,90 +105,107 @@ public class AddEmployeePanel extends JPanel {
                     ((AbstractDocument) numericField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
                     inputField = numericField;
                     break;
-
                 case "status":
-                    JComboBox<String> statusBox = new JComboBox<>(new String[]{"Regular", "Probationary"});
-                    inputField = statusBox;
+                    inputField = new JComboBox<>(new String[]{"Regular", "Probationary"});
                     break;
-
                 default:
                     inputField = new JTextField();
             }
 
-            // Add label and field to the form panel
             formPanel.add(labelPanel);
             formPanel.add(inputField);
             fieldMap.put(header, inputField);
         }
 
-        // Set up button actions
+        // Button styling
+        submitButton.setBackground(Color.BLACK);
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setFocusPainted(false);
+
+        backButton.setBackground(Color.BLACK);
+        backButton.setForeground(Color.WHITE);
+        backButton.setFocusPainted(false);
+
         submitButton.addActionListener(this::addEmployee);
         backButton.addActionListener(e -> {
             if (onEmployeeAdded != null) onEmployeeAdded.run();
         });
 
-        // Bottom panel for buttons and reminder
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Bottom panel layout and padding
+        bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         bottomPanel.add(new JLabel("* Required fields"));
         bottomPanel.add(backButton);
         bottomPanel.add(submitButton);
 
-        // Add everything to main panel
+        // Add everything to the main panel
         add(scrollPane, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    /**
-     * Collects and validates input data, then adds employee to file.
-     */
+    // Paint background gradient (top to half)
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g.create();
+        int w = getWidth();
+        int h = getHeight();
+
+        GradientPaint gp = new GradientPaint(
+                0, 0, new Color(0xFFD1DC),
+                0, h / 2, new Color(0xFFE4CC)
+        );
+
+        g2d.setPaint(gp);
+        g2d.fillRect(0, 0, w, h);
+        g2d.dispose();
+    }
+
+    // Add new employee after validation
     private void addEmployee(ActionEvent e) {
         String[] newRow = new String[fieldMap.size()];
         int index = 0;
         boolean hasError = false;
         StringBuilder errorMessages = new StringBuilder();
 
-        // Reset all field borders before validation
         for (JComponent field : fieldMap.values()) {
             field.setBorder(UIManager.getBorder("TextField.border"));
         }
 
-        // Loop through each field for validation
         for (Map.Entry<String, JComponent> entry : fieldMap.entrySet()) {
             String header = entry.getKey();
             JComponent component = entry.getValue();
             String value = "";
 
-            // Extract field value
             if (component instanceof JTextField) {
                 value = ((JTextField) component).getText().trim();
             } else if (component instanceof DatePicker) {
-                value = ((DatePicker) component).getDate() != null ? ((DatePicker) component).getDate().toString() : "";
+                value = ((DatePicker) component).getDate() != null
+                        ? ((DatePicker) component).getDate().toString()
+                        : "";
             } else if (component instanceof JComboBox<?>) {
                 value = ((JComboBox<?>) component).getSelectedItem().toString();
             }
 
-            // Check if required field is empty
             if (isRequired(header) && value.isEmpty()) {
                 component.setBorder(new LineBorder(Color.RED, 2));
                 hasError = true;
                 errorMessages.append("- ").append(header).append(" is required.\n");
             }
 
-            // Validate numeric fields
             if ((header.equalsIgnoreCase("Employee #") ||
-                 header.equalsIgnoreCase("Phone Number") ||
-                 header.equalsIgnoreCase("SSS #") ||
-                 header.equalsIgnoreCase("Philhealth #") ||
-                 header.equalsIgnoreCase("TIN #") ||
-                 header.equalsIgnoreCase("Pag-ibig #")) &&
-                 !value.matches("\\d+")) {
-
+                    header.equalsIgnoreCase("Phone Number") ||
+                    header.equalsIgnoreCase("SSS #") ||
+                    header.equalsIgnoreCase("Philhealth #") ||
+                    header.equalsIgnoreCase("TIN #") ||
+                    header.equalsIgnoreCase("Pag-ibig #")) &&
+                    !value.matches("\\d+")) {
                 component.setBorder(new LineBorder(Color.RED, 2));
                 hasError = true;
                 errorMessages.append("- ").append(header).append(" must be numeric.\n");
             }
 
-            // Check for duplicate employee number
             if (header.equalsIgnoreCase("Employee Number") && employeeNumberExists(value)) {
                 component.setBorder(new LineBorder(Color.RED, 2));
                 component.requestFocus();
@@ -187,14 +218,12 @@ public class AddEmployeePanel extends JPanel {
             newRow[index++] = value;
         }
 
-        // Show validation errors if any
         if (hasError) {
             JOptionPane.showMessageDialog(this, "Please fix the following:\n" + errorMessages,
                     "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Append to file and notify user
         if (fileHandler.appendEmployeeToFile(newRow)) {
             fileHandler.readEmployeeFile();
             JOptionPane.showMessageDialog(this, "✅ Employee added successfully!");
@@ -206,9 +235,6 @@ public class AddEmployeePanel extends JPanel {
         }
     }
 
-    /**
-     * Checks if given employee number already exists in file.
-     */
     private boolean employeeNumberExists(String empNum) {
         for (String[] row : fileHandler.getEmployeeData()) {
             if (row.length > 0 && row[0].equalsIgnoreCase(empNum)) {
@@ -218,9 +244,6 @@ public class AddEmployeePanel extends JPanel {
         return false;
     }
 
-    /**
-     * Clears all input fields after submission or reset.
-     */
     private void clearFields() {
         for (Map.Entry<String, JComponent> entry : fieldMap.entrySet()) {
             JComponent field = entry.getValue();
@@ -235,9 +258,6 @@ public class AddEmployeePanel extends JPanel {
         }
     }
 
-    /**
-     * Determines if a field is required based on its name.
-     */
     private boolean isRequired(String header) {
         return header.equalsIgnoreCase("Employee #")
                 || header.equalsIgnoreCase("Last Name")
@@ -250,39 +270,35 @@ public class AddEmployeePanel extends JPanel {
                 || header.equalsIgnoreCase("Pag-ibig #");
     }
 
-    /**
-     * Document filter that restricts input to numeric characters only.
-     */
     private static class NumericDocumentFilter extends DocumentFilter {
         @Override
-        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+        public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
+                throws BadLocationException {
             if (string != null && string.matches("\\d+")) {
                 super.insertString(fb, offset, string, attr);
             }
         }
 
         @Override
-        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+        public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                throws BadLocationException {
             if (text != null && text.matches("\\d+")) {
                 super.replace(fb, offset, length, text, attrs);
             }
         }
     }
 
-    // Uncomment this to test the panel independently
-    /*
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            FileHandler fileHandler = new FileHandler();
-            fileHandler.readEmployeeFile();
-
-            JFrame frame = new JFrame("Add Employee Panel");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(550, 600);
-            frame.setLocationRelativeTo(null);
-            frame.add(new AddEmployeePanel(fileHandler, null));
-            frame.setVisible(true);
-        });
-    }
-    */
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> {
+//            FileHandler fileHandler = new FileHandler();
+//            fileHandler.readEmployeeFile();
+//
+//            JFrame frame = new JFrame("Add Employee Panel");
+//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//            frame.setSize(600, 650);
+//            frame.setLocationRelativeTo(null);
+//            frame.add(new AddEmployeePanel(fileHandler, null));
+//            frame.setVisible(true);
+//        });
+//    }
 }

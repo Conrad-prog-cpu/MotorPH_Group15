@@ -200,7 +200,7 @@ public class ViewEmployeePanel extends JFrame {
                         • Withholding Tax: ₱%,.2f
                         • Weekly Deduction Total: ₱%,.2f
 
-                        📅 Net Monthly Salary: ₱%,.2f                             
+                        📅 Net Monthly Salary: ₱%,.2f                           
                         ✅ Net Weekly Salary: ₱%,.2f
                         """,
                         rice, phone, clothing, (rice + phone + clothing),
