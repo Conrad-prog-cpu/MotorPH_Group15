@@ -1,9 +1,19 @@
 package model;
 
+// Imports all main classes from the OpenCSV library
+// Used for reading and writing CSV (Comma-Separated Values) files
 import com.opencsv.*;
+
+// Imports specific exception class from OpenCSV
+// Thrown when a CSV file contains invalid or unreadable data
 import com.opencsv.exceptions.CsvValidationException;
 
+// Imports I/O classes for reading from and writing to files
+// Includes FileReader, FileWriter, BufferedReader, etc.
 import java.io.*;
+
+// Imports utility classes from the Java Collections Framework
+// Includes ArrayList, HashMap, List, Set, etc., commonly used for storing and manipulating data
 import java.util.*;
 
 public class FileHandler {

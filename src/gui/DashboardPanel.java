@@ -3,15 +3,28 @@ package gui;
 
 // Import statements for GUI components and utilities
 import javax.swing.*;
+// Imports the EmptyBorder class to create an invisible border around Swing components
+// Often used for spacing/padding in layouts
 import javax.swing.border.EmptyBorder;
+
+// Imports all classes from the java.awt package
+// Includes core classes for GUI components, colors, layout managers, etc.
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
+// Imports MouseAdapter class, which provides empty implementations of MouseListener methods
+// Convenient for handling only specific mouse events (e.g., click or hover)
 import java.awt.event.MouseAdapter;
+
+// Imports MouseEvent class to detect mouse actions like click, press, release, or hover
 import java.awt.event.MouseEvent;
+
+// Imports the URL class, used for locating resources such as images or files on the web or locally
 import java.net.URL;
 
+// Imports the FileHandler class from the 'model' package
+// Typically used for file operations (e.g., reading/writing employee or attendance data)
 import model.FileHandler;
+
 
 /**
  * DashboardPanel serves as the main window for the MotorPH HR system.
@@ -27,10 +40,8 @@ public class DashboardPanel extends JFrame {
 
     // Panels for displaying employee and payroll data
     private final EmployeePanel employeePanel = new EmployeePanel();
-    PayrollPanel salaryPanel = new PayrollPanel();
 
     // Ensures the payroll instruction popup only appears once
-    private boolean hasShownPayrollInstruction = false;
 
     /**
      * Constructor that initializes the dashboard and its components.

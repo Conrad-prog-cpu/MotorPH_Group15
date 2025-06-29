@@ -1,16 +1,36 @@
 package gui;
 
+// Importing the FileHandler class from the 'model' package
+// This class is likely used to read/write employee or attendance data from files
 import model.FileHandler;
 
+// Importing core Swing components for building the GUI
 import javax.swing.*;
+
+// Importing custom scrollbar UI from the basic look and feel package
+// Allows customization of the appearance and behavior of scrollbars
 import javax.swing.plaf.basic.BasicScrollBarUI;
+
+// Importing default cell renderer to allow customization of how table cells are displayed
 import javax.swing.table.DefaultTableCellRenderer;
+
+// Importing table model class to manage the data of a JTable
+// Used to populate, update, and control how the table handles data
 import javax.swing.table.DefaultTableModel;
+
+// Importing AWT classes for GUI layout, colors, fonts, and event handling
 import java.awt.*;
+
+// Importing ActionEvent to handle button or component action events
 import java.awt.event.ActionEvent;
+
+// Importing ArrayList and List for storing dynamic lists of data (e.g., employee records)
 import java.util.ArrayList;
 import java.util.List;
+
+// Importing Vector for table data model (commonly used in Swing table structures)
 import java.util.Vector;
+
 
 public class EmployeeTable extends JPanel {
 

@@ -1,8 +1,6 @@
 // Package declaration; this class belongs to the 'gui' package
 package gui;
 
-// Imports the EmployeeTable class from the 'gui' package
-import gui.EmployeeTable;
 // Imports the FileHandler class from the 'model' package
 import model.FileHandler;
 // Imports Swing components for UI (e.g., JPanel, JButton, etc.)
@@ -91,9 +89,242 @@ public class EmployeePanel extends JPanel {
         bottomButtonPanel.setOpaque(false); // Transparent
         bottomButtonPanel.setBorder(new EmptyBorder(10, 50, 20, 50)); // Padding
 
+        // Create and style Update button (black background)
+        JButton updateButton = new JButton("Update");
+        styleColoredButton(updateButton, Color.BLACK, 120, 36);
+        updateButton.setEnabled(false); // Initially disabled
+        bottomButtonPanel.add(updateButton); // Add to bottom panel
+
+        // Create and style Delete button (red background)
+        JButton deleteButton = new JButton("Delete");
+        styleColoredButton(deleteButton, new Color(220, 20, 60), 120, 36);
+        deleteButton.setEnabled(false); // Initially disabled
+        bottomButtonPanel.add(deleteButton); // Add to bottom panel
+
         // Add bottom panel to the south of the main layout
         add(bottomButtonPanel, BorderLayout.SOUTH);
 
+        // Enable/disable buttons based on row selection in the table
+        dashboardTable.getTable().getSelectionModel().addListSelectionListener(e -> {
+            boolean isSelected = dashboardTable.getTable().getSelectedRow() != -1;
+            updateButton.setEnabled(isSelected);
+            deleteButton.setEnabled(isSelected);
+        });
+
+        // Add click event for Update button
+        updateButton.addActionListener(e -> {
+                // Get selected row index
+                int selectedRow = dashboardTable.getTable().getSelectedRow();
+                if (selectedRow == -1) {
+                    JOptionPane.showMessageDialog(null, "⚠ Please select a row to update.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                // Get Employee ID from the first column
+                String employeeId = dashboardTable.getTable().getValueAt(selectedRow, 0).toString();
+                // Get full employee details using ID
+                String[] fullRow = fileHandler.getEmployeeById(employeeId);
+
+                // Show error if not found
+                if (fullRow == null) {
+                    JOptionPane.showMessageDialog(null, "❌ Employee record not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Fields editable in the update form
+                String[] editableFields = {
+                    "Last Name", "First Name", "Birthday", "Address", "Phone Number",
+                    "SSS #", "Philhealth #", "TIN #", "Pag-ibig #", "Status", "Position",
+                    "Immediate Supervisor", "Basic Salary", "Rice Subsidy", "Phone Allowance",
+                    "Clothing Allowance", "Gross Semi-monthly Rate", "Hourly Rate"
+                };
+
+                // Get header titles from file
+                String[] headers = fileHandler.getEmployeeHeaders();
+
+                 // Form panel with gradient background
+                JPanel panel = new JPanel(new SpringLayout()) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setPaint(new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd));
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
+                }
+            };
+
+            // Add Employee ID field (non-editable)
+            JLabel lblId = new JLabel("Employee ID *:");
+            lblId.setForeground(Color.RED); // Red asterisk
+            JTextField txtId = new JTextField(employeeId, 20);
+            txtId.setEditable(false); // Lock field
+            txtId.setBackground(new Color(240, 240, 240));
+            txtId.setToolTipText("🔒 This field is locked for all employees.");
+            panel.add(lblId);
+            panel.add(txtId);
+
+            // Check if employee is "Regular" to lock salary fields
+            int statusIndex = java.util.Arrays.asList(headers).indexOf("Status");
+            boolean isRegular = statusIndex != -1 && fullRow[statusIndex].equalsIgnoreCase("Regular");
+
+            // Create text fields and labels for each editable field
+            JTextField[] textFields = new JTextField[editableFields.length];
+            String[] originalValues = new String[editableFields.length];
+
+            for (int i = 0; i < editableFields.length; i++) {
+                String fieldName = editableFields[i];
+                int fieldIndex = java.util.Arrays.asList(headers).indexOf(fieldName);
+
+                // Lock salary fields for Regular employees
+                boolean isLockedField = isRegular && (
+                    fieldName.equals("Basic Salary") ||
+                    fieldName.equals("Rice Subsidy") ||
+                    fieldName.equals("Phone Allowance") ||
+                    fieldName.equals("Clothing Allowance") ||
+                    fieldName.equals("Gross Semi-monthly Rate") ||
+                    fieldName.equals("Hourly Rate")
+                );
+
+                JLabel label = new JLabel(isLockedField ? fieldName + " *" : fieldName + ":");
+                if (isLockedField) label.setForeground(Color.RED);
+
+                JTextField textField = new JTextField(20);
+                textField.setEditable(!isLockedField);
+
+                // Pre-fill data
+                if (fieldIndex != -1 && fieldIndex < fullRow.length) {
+                    textField.setText(fullRow[fieldIndex]);
+                    originalValues[i] = fullRow[fieldIndex];
+                }
+
+                if (isLockedField) {
+                    textField.setBackground(new Color(240, 240, 240));
+                    textField.setToolTipText("🔒 This field is locked for Regular employees.");
+                }
+
+                panel.add(label);
+                panel.add(textField);
+                textFields[i] = textField;
+            }
+
+            // Add note explaining locked fields
+            JLabel note = new JLabel("* Locked field — cannot be edited.");
+            note.setForeground(Color.RED);
+            panel.add(note);
+            panel.add(new JLabel()); // Spacer
+
+            // Use SpringUtilities to layout the panel neatly
+            SpringUtilities.makeCompactGrid(panel, editableFields.length + 2, 2, 10, 10, 10, 10);
+
+                // Modal dialog setup
+            JDialog dialog = new JDialog((Frame) null, "Update Employee", true);
+            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialog.setSize(650, 750);
+            dialog.setLocationRelativeTo(null);
+            dialog.setResizable(true);
+            dialog.setLayout(new BorderLayout());
+            dialog.add(new JScrollPane(panel), BorderLayout.CENTER);
+
+            // Save and cancel buttons
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setBackground(new Color(0, 240, 240)); // 👈 replace with your desired color
+            
+            buttonPanel.setOpaque(false); // 🔹 Make panel transparent
+            JButton saveBtn = new JButton("Save");
+            styleMinimalButton(saveBtn, 120, 36);
+            saveBtn.addActionListener(evt -> {
+                boolean anyChanged = false;
+                for (int i = 0; i < editableFields.length; i++) {
+                    String newVal = textFields[i].getText().trim();
+                    if (!newVal.equals(originalValues[i]) && textFields[i].isEditable()) {
+                        boolean updated = fileHandler.updateEmployeeField(employeeId, editableFields[i], newVal);
+                        anyChanged |= updated;
+                    }
+                }
+                if (anyChanged) { 
+                    showCustomMessage("Employee record updated successfully.", "Updated");
+                    dashboardTable.refreshTable(fileHandler.getEmployeeData());
+                } else {
+                    showCustomMessage("No changes were made.", "Message");
+                }
+                dialog.dispose();
+            });
+
+            JButton cancelBtn = new JButton("Cancel");
+            styleColoredButton(cancelBtn, new Color(128, 128, 128), 100, 36);
+            cancelBtn.addActionListener(evt -> dialog.dispose());
+
+            buttonPanel.add(saveBtn);
+            buttonPanel.add(cancelBtn);
+            dialog.add(buttonPanel, BorderLayout.SOUTH);
+            dialog.setVisible(true);
+
+
+            });
+
+        // Add click event for Delete button
+        deleteButton.addActionListener(e -> {
+                int selectedRow = dashboardTable.getTable().getSelectedRow();
+                if (selectedRow == -1) { 
+                    showCustomMessage("Please select an employee to delete.", "Message");
+                    return;
+                }
+
+                String employeeId = (String) dashboardTable.getTable().getValueAt(selectedRow, 0); // <-- KEEP THIS HERE
+
+                // Custom delete confirmation dialog
+                    JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Warning", true);
+                    dialog.setSize(400, 180);
+                    dialog.setLocationRelativeTo(this);
+                    dialog.setLayout(new BorderLayout());
+
+                    // Gradient background panel
+                    JPanel content = new JPanel() {
+                        @Override
+                        protected void paintComponent(Graphics g) {
+                            super.paintComponent(g);
+                            Graphics2D g2d = (Graphics2D) g;
+                            g2d.setPaint(new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd));
+                            g2d.fillRect(0, 0, getWidth(), getHeight());
+                        }
+                    };
+                    content.setBorder(new EmptyBorder(20, 20, 20, 20));
+                    content.setLayout(new BorderLayout(10, 10));
+
+                    // Confirmation message
+                    JLabel message = new JLabel("<html><center>Are you sure you want to delete<br>employee ID <b>" + employeeId + "</b>?</center></html>", JLabel.CENTER);
+                    message.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                    content.add(message, BorderLayout.CENTER);
+
+                    // Button panel
+                    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+                    buttonPanel.setOpaque(false);
+
+                    JButton yesButton = new JButton("Yes");
+                    styleColoredButton(yesButton, new Color(220, 20, 60), 80, 36);
+                    yesButton.addActionListener(ev -> {
+                        try {
+                            fileHandler.deleteEmployeeById(employeeId);
+                            dashboardTable.refreshTable(fileHandler.getEmployeeData());
+                                showCustomMessage("Record Deleted Successfully", "Deleted");
+
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(this, "❌ Failed to delete: " + ex.getMessage());
+                        }
+                        dialog.dispose();
+                    });
+
+                    JButton noButton = new JButton("No");
+                    styleColoredButton(noButton, Color.GRAY, 80, 36);
+                    noButton.addActionListener(ev -> dialog.dispose());
+
+                    buttonPanel.add(yesButton);
+                    buttonPanel.add(noButton);
+
+                    content.add(buttonPanel, BorderLayout.SOUTH);
+                    dialog.setContentPane(content);
+                    dialog.setVisible(true);
+
+            });
     }
 
     // Method to reload and update table with latest data
@@ -143,13 +374,71 @@ public class EmployeePanel extends JPanel {
     private void showSelectedEmployeeDetails() {
         Vector<Object> selected = dashboardTable.getSelectedEmployeeFullDetails();
         if (selected == null || selected.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please select an employee first.");
+            showCustomMessage("Please select an employee first.", "Message");
             return;
         }
        
 
-        new ViewEmployeePanel(selected);
+        new ViewEmployeePanel(selected);// Opens a new window showing employee details
+        }
+        private void showCustomMessage(String message, String title) {
+        JDialog customDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title, true);
+        customDialog.setSize(400, 260);
+        customDialog.setLocationRelativeTo(this);
+        customDialog.setLayout(new BorderLayout());
+
+        // Gradient background panel
+        JPanel contentPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setPaint(new GradientPaint(0, 0, gradientStart, 0, getHeight(), gradientEnd));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        contentPanel.setBorder(new EmptyBorder(20, 20, 10, 20));
+        contentPanel.setLayout(new BorderLayout(10, 10));
+
+        // Message label
+        JLabel messageLabel = new JLabel(message, JLabel.CENTER);
+        messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 20));
+        contentPanel.add(messageLabel, BorderLayout.CENTER);
+
+        // OK Button panel
+        JPanel dialogButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        dialogButtonPanel.setOpaque(false);
+
+        JButton okButton = new JButton("OK");
+        okButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        okButton.setForeground(Color.WHITE);
+        okButton.setPreferredSize(new Dimension(80, 30));
+        okButton.setFocusPainted(false);
+        okButton.setContentAreaFilled(false);
+        okButton.setBorderPainted(false);
+        okButton.setOpaque(false);
+
+        // Rounded button UI
+        okButton.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.BLACK);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g2, c);
+                g2.dispose();
+            }
+        });
+
+        okButton.addActionListener(e -> customDialog.dispose());
+        dialogButtonPanel.add(okButton);
+
+        contentPanel.add(dialogButtonPanel, BorderLayout.SOUTH);
+        customDialog.setContentPane(contentPanel);
+        customDialog.setVisible(true);
     }
+        
 
     // Opens Add Employee window with callback to refresh table
     private void showAddEmployeeDialog() {

@@ -1,3 +1,5 @@
+package model;
+
 // This class represents an Employee with relevant salary details
 public class Employee {
 

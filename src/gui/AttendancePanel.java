@@ -2,21 +2,51 @@ package gui;
 
 import model.FileHandler;
 
+// Importing the FileHandler class from the model package
+// Used to manage file operations like reading attendance data
+import model.FileHandler;
+
+// Swing components for building the user interface (e.g., JPanel, JTable, JScrollPane, etc.)
 import javax.swing.*;
+
+// Provides EmptyBorder for adding padding around components (e.g., spacing around panels)
 import javax.swing.border.EmptyBorder;
+
+// UI class to customize scrollbar appearance (colors, size, thumb style)
 import javax.swing.plaf.basic.BasicScrollBarUI;
+
+// Renderer class to customize how table cells are displayed (e.g., center alignment)
 import javax.swing.table.DefaultTableCellRenderer;
+
+// Table model class for managing and updating JTable data dynamically
 import javax.swing.table.DefaultTableModel;
+
+// Represents the table header component, which can also be customized
 import javax.swing.table.JTableHeader;
+
+// Imports core AWT classes used for UI layout, colors, fonts, etc.
 import java.awt.*;
+
+// Provides data structure to store dynamic list of arrays (e.g., attendance rows)
 import java.util.ArrayList;
+
+// Interface for creating strongly typed lists (e.g., List<String[]>)
 import java.util.List;
 
 public class AttendancePanel extends JPanel {
+    // Instance of FileHandler to access attendance-related file operations
     private FileHandler fileHandler;
+
+    // JTable to display attendance records in tabular form
     private JTable table;
+
+    // Table model to control the structure and content of the JTable
     private DefaultTableModel model;
+
+    // Text field for searching/filtering attendance data
     private JTextField searchField;
+
+    // Holds all attendance data read from the file for reference and filtering
     private List<String[]> allData;
 
     // Gradient background colors
