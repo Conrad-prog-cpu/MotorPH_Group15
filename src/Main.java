@@ -20,11 +20,16 @@ public class Main {
         // Ensures that all Swing components are created on the Event Dispatch Thread (EDT)
         // This is the recommended approach for thread safety in Swing applications
         javax.swing.SwingUtilities.invokeLater(() -> {
+
             // Uncomment the line below to show the LoginPanel instead of directly opening the dashboard
 //            LoginPanel loginPanel = new LoginPanel(); // Launches the login GUI
             
             // For now, bypasses login and opens the Dashboard directly with "Admin" user
-            new DashboardPanel("Admin");
+//            new DashboardPanel("Admin");
+
+            LoginPanel LoginPanel = new LoginPanel(); // Launch the login GUI
+          
+
         });
     }
 }

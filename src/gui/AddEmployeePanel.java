@@ -15,6 +15,8 @@ import javax.swing.text.*;
 // AWT classes for layout and graphics
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
 
@@ -112,26 +114,61 @@ public class AddEmployeePanel extends JPanel {
             // Create appropriate input field
             JComponent inputField;
             switch (header.toLowerCase()) {
-                case "birthday":
+                case "employee #" -> {
+                    JTextField numericField2 = new JTextField();
+                    ((AbstractDocument) numericField2.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+                    addTooltipOnFocus(numericField2, "Enter numbers only");
+                    inputField = numericField2;
+                }
+                case "birthday" -> {
                     DatePickerSettings settings = new DatePickerSettings();
                     settings.setFormatForDatesCommonEra("yyyy/MM/dd");
-                    inputField = new DatePicker(settings);
-                    break;
-                case "phone number":
-                case "employee number":
-                case "sss":
-                case "philhealth":
-                case "tin":
-                case "pagibig":
+
+                    // Declare datePicker first
+                    DatePicker datePicker = new DatePicker(settings);
+
+                    // Add tooltip to the internal text field of datePicker
+                    addTooltipOnFocus(datePicker.getComponentDateTextField(), "Enter date in format: yyyy/MM/dd");
+
+                    // Assign the datePicker as the input field
+                    inputField = datePicker;
+                }
+                case "phone number" -> {
+                    JTextField numericField5 = new JTextField();
+                    ((AbstractDocument) numericField5.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+                    addTooltipOnFocus(numericField5, "Enter numbers only");
+                    inputField = numericField5;
+                }
+                case "sss #" -> {
+                    JTextField numericField4 = new JTextField();
+                    ((AbstractDocument) numericField4.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+                    addTooltipOnFocus(numericField4, "Enter numbers only");
+                    inputField = numericField4;
+                }
+                case "philhealth #" -> {
+                    JTextField numericField3 = new JTextField();
+                    ((AbstractDocument) numericField3.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+                    addTooltipOnFocus(numericField3, "Enter numbers only");
+                    inputField = numericField3;
+                }
+                case "tin #" -> {
+                    JTextField numericField1 = new JTextField();
+                    ((AbstractDocument) numericField1.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+                    addTooltipOnFocus(numericField1, "Enter numbers only");
+                    inputField = numericField1;
+                }
+                case "pag-ibig #" -> {
                     JTextField numericField = new JTextField();
                     ((AbstractDocument) numericField.getDocument()).setDocumentFilter(new NumericDocumentFilter());
+                    addTooltipOnFocus(numericField, "Enter numbers only");
                     inputField = numericField;
-                    break;
-                case "status":
-                    inputField = new JComboBox<>(new String[]{"Regular", "Probationary"});
-                    break;
-                default:
-                    inputField = new JTextField();
+                }
+                case "status" -> inputField = new JComboBox<>(new String[]{"Regular", "Probationary"});
+                default -> {
+                    JTextField textField = new JTextField();
+                    addTooltipOnFocus(textField, "Enter text");
+                    inputField = textField;
+                }
             }
 
             // Add label and input to form
@@ -266,6 +303,47 @@ public class AddEmployeePanel extends JPanel {
         }
     }
 
+    // Utility method to add a tooltip that shows on focus
+        private void addTooltipOnFocus(JTextField textField, String tooltipText) {
+            textField.setToolTipText(tooltipText);
+            textField.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    ToolTipManager.sharedInstance().mouseMoved(
+                        new java.awt.event.MouseEvent(
+                            textField,
+                            java.awt.event.MouseEvent.MOUSE_MOVED,
+                            System.currentTimeMillis(),
+                            0,
+                            1, 1,
+                            0, false
+                        )
+                    );
+                }
+            });
+        }
+        
+    // Shows tooltip text when the user focuses into the field
+        private void addTooltipOnFocus2(JTextField textField, String tooltipText) {
+            textField.setToolTipText(tooltipText);
+            textField.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    ToolTipManager.sharedInstance().mouseMoved(
+                        new java.awt.event.MouseEvent(
+                            textField,
+                            java.awt.event.MouseEvent.MOUSE_MOVED,
+                            System.currentTimeMillis(),
+                            0,
+                            1, 1,
+                            0, false
+                        )
+                    );
+                }
+            });
+        }
+
+        
     // Check if employee number already exists in file
     private boolean employeeNumberExists(String empNum) {
         for (String[] row : fileHandler.getEmployeeData()) {
@@ -302,6 +380,7 @@ public class AddEmployeePanel extends JPanel {
                 || header.equalsIgnoreCase("Philhealth #")
                 || header.equalsIgnoreCase("TIN #")
                 || header.equalsIgnoreCase("Pag-ibig #");
+        
     }
 
     // Filter to allow only numeric input

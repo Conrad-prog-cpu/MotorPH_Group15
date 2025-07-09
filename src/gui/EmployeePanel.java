@@ -25,7 +25,7 @@ public class EmployeePanel extends JPanel {
     private final Color gradientEnd = new Color(255, 229, 180);
 
     // Declares a search input field with a fixed column width of 20
-    private final JTextField searchField = new JTextField(20);
+//    private final JTextField searchField = new JTextField(20);
     // Declares a FileHandler object to manage file I/O operations
     private final FileHandler fileHandler;
     // Declares an EmployeeTable to display employee data
@@ -52,9 +52,9 @@ public class EmployeePanel extends JPanel {
         topPanel.setBorder(new EmptyBorder(20, 50, 0, 50));
 
         // Left section of the top panel (for search)
-        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        leftPanel.setOpaque(false); // Make it transparent
-        leftPanel.add(buildSearchPanel()); // Adds the search bar
+//        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+//        leftPanel.setOpaque(false); // Make it transparent
+//        leftPanel.add(buildSearchPanel()); // Adds the search bar
 
         // Right section of the top panel (for buttons)
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -75,7 +75,7 @@ public class EmployeePanel extends JPanel {
         rightPanel.add(addButton); // Add to the right panel
 
         // Add both panels to the top panel
-        topPanel.add(leftPanel, BorderLayout.WEST);
+//        topPanel.add(leftPanel, BorderLayout.WEST);
         topPanel.add(rightPanel, BorderLayout.EAST);
         // Add the top panel to the north of the main layout
         add(topPanel, BorderLayout.NORTH);
@@ -341,34 +341,34 @@ public class EmployeePanel extends JPanel {
     }
 
     // Builds the search bar panel
-    private JPanel buildSearchPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        panel.setOpaque(false);
-
-        searchField.setToolTipText("Search by ID, Last Name, or First Name");
-        searchField.setPreferredSize(new Dimension(200, 36));
-        searchField.setBackground(Color.WHITE);
-        searchField.setForeground(Color.BLACK);
-        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        searchField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
-        ));
-
-        JButton searchButton = new JButton("Search");
-        styleColoredButton(searchButton, new Color(30, 144, 255), 80, 36);
-        searchButton.addActionListener(this::performSearch);
-
-        panel.add(searchField);
-        panel.add(searchButton);
-        return panel;
-    }
+//    private JPanel buildSearchPanel() {
+//        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+//        panel.setOpaque(false);
+//
+//        searchField.setToolTipText("Search by ID, Last Name, or First Name");
+//        searchField.setPreferredSize(new Dimension(200, 36));
+//        searchField.setBackground(Color.WHITE);
+//        searchField.setForeground(Color.BLACK);
+//        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+//        searchField.setBorder(BorderFactory.createCompoundBorder(
+//                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+//                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+//        ));
+//
+//        JButton searchButton = new JButton("Search");
+//        styleColoredButton(searchButton, new Color(30, 144, 255), 80, 36);
+//        searchButton.addActionListener(this::performSearch);
+//
+//        panel.add(searchField);
+//        panel.add(searchButton);
+//        return panel;
+//    }
 
     // Filters the table using search input
-    private void performSearch(ActionEvent e) {
-        String query = searchField.getText().trim().toLowerCase();
-        dashboardTable.filterTable(query);
-    }
+//    private void performSearch(ActionEvent e) {
+//        String query = searchField.getText().trim().toLowerCase();
+//        dashboardTable.filterTable(query);
+//    }
 
     // Displays full employee details in a new panel
     private void showSelectedEmployeeDetails() {
