@@ -26,7 +26,6 @@ public class Main {
             
             // For now, bypasses login and opens the Dashboard directly with "Admin" user
 //            new DashboardPanel("Admin");
-
             LoginPanel LoginPanel = new LoginPanel(); // Launch the login GUI
           
 

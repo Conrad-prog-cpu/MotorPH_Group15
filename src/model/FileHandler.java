@@ -310,4 +310,94 @@ public class FileHandler {
         }
         return null;
     }
+
+
+    // ✅ Check if a username already exists in the credentials file
+    public boolean userExists(String username) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(credentialsFilePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && parts[0].trim().equals(username)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading credentials file: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // ✅ Add a new user to the credentials file
+    public boolean addUser(String username, String password) {
+        if (username.contains(",") || password.contains(",")) {
+            System.err.println("Username and password must not contain commas.");
+            return false;
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(credentialsFilePath, true))) {
+            writer.write(username + "," + password);
+            writer.newLine();
+            return true;
+        } catch (IOException e) {
+            System.err.println("Error writing to credentials file: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ✅ (Already mentioned) update user password
+    public boolean updateUserPassword(String username, String newPassword) {
+        List<String> lines = new ArrayList<>();
+        boolean updated = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(credentialsFilePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2 && parts[0].trim().equals(username)) {
+                    lines.add(username + "," + newPassword);
+                    updated = true;
+                } else {
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return false;
+        }
+
+        if (updated) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(credentialsFilePath))) {
+                for (String updatedLine : lines) {
+                    writer.write(updatedLine);
+                    writer.newLine();
+                }
+                return true;
+            } catch (IOException e) {
+                System.err.println("Error writing file: " + e.getMessage());
+            }
+        }
+
+        return false;
+    }
+
+    // ✅ Return list of usernames
+    public List<String> getAllUsers() {
+        List<String> users = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(credentialsFilePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 2) {
+                    users.add(parts[0].trim());
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading users: " + e.getMessage());
+        }
+        return users;
+    }
+
+    
+  
 }

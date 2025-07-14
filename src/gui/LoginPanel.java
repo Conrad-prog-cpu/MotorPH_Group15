@@ -28,10 +28,12 @@ public class LoginPanel extends JFrame {
 
     // Checkbox to toggle password visibility
     private final JCheckBox showPassword;
-
+    
     // Login button
     private final JButton loginButton;
-
+    
+//    private final JButton manageUsersButton;
+    
     // Label to display success or error messages
     private final JLabel feedbackLabel;
 
@@ -142,7 +144,7 @@ public class LoginPanel extends JFrame {
         };
         usernameField.addKeyListener(enterKeyListener);
         passwordField.addKeyListener(enterKeyListener);
-
+        
         // Checkbox: Show/hide password
         gbc.gridy++;
         showPassword = new JCheckBox("Show Password") {
@@ -205,7 +207,24 @@ public class LoginPanel extends JFrame {
         feedbackLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         feedbackLabel.setForeground(Color.RED);
         card.add(feedbackLabel, gbc);
+        
+       // Manage Users button (only shown for admin setup or testing)
+//        gbc.gridy++;
+//        manageUsersButton = new JButton("Manage Users");
+//        manageUsersButton.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+//        manageUsersButton.setFocusPainted(false);
+//        manageUsersButton.setForeground(new Color(25, 25, 112));
+//        manageUsersButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+//        manageUsersButton.setContentAreaFilled(false);
+//        manageUsersButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+//
+//        // Open UserManagementPanel on click
+//        manageUsersButton.addActionListener(e -> new UserManagementPanel());
+//
+//        card.add(manageUsersButton, gbc);
 
+        
+        
         // Add the login card to the center of background panel
         backgroundPanel.add(card);
         setVisible(true); // Show the frame
@@ -228,6 +247,7 @@ public class LoginPanel extends JFrame {
                 SwingUtilities.invokeLater(() -> {
                     try {
                         new DashboardPanel(user); // Pass username
+                        
                     } catch (Exception ex) {
                         Logger.getLogger(LoginPanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
